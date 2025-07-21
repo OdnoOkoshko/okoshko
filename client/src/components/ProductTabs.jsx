@@ -22,7 +22,10 @@ export default function ProductTabs() {
     const saved = localStorage.getItem(`columnWidths_${activeTab}`)
     return saved ? JSON.parse(saved) : {}
   })
-  const [sortConfig, setSortConfig] = useState({ column: null, direction: null })
+  const [sortConfig, setSortConfig] = useState(() => {
+    const saved = localStorage.getItem(`sortState_${activeTab}`)
+    return saved ? JSON.parse(saved) : { column: null, direction: null }
+  })
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -120,6 +123,21 @@ export default function ProductTabs() {
       setColumnWidths(JSON.parse(saved))
     } else {
       setColumnWidths({})
+    }
+  }, [activeTab])
+
+  // Сохранение состояния сортировки в localStorage
+  useEffect(() => {
+    localStorage.setItem(`sortState_${activeTab}`, JSON.stringify(sortConfig))
+  }, [sortConfig, activeTab])
+
+  // Загрузка состояния сортировки при смене вкладки
+  useEffect(() => {
+    const saved = localStorage.getItem(`sortState_${activeTab}`)
+    if (saved) {
+      setSortConfig(JSON.parse(saved))
+    } else {
+      setSortConfig({ column: null, direction: null })
     }
   }, [activeTab])
 
