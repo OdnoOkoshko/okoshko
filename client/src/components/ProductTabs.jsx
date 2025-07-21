@@ -210,7 +210,7 @@ export default function ProductTabs() {
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
             {/* Компактная панель управления */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="grid grid-cols-3 items-center mb-3">
               {/* Левая часть - счетчик записей */}
               <div className="text-sm text-gray-600">
                 {searchTerm ? (
@@ -220,9 +220,13 @@ export default function ProductTabs() {
                 )}
               </div>
               
-              {/* Правая часть - поиск и кнопка управления столбцами */}
-              <div className="flex items-center gap-3">
+              {/* Центральная часть - поиск */}
+              <div className="flex justify-center">
                 <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+              </div>
+              
+              {/* Правая часть - кнопка управления столбцами */}
+              <div className="flex justify-end">
                 <div className="relative">
                   <button
                     ref={buttonRef}
