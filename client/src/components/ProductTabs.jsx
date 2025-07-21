@@ -305,6 +305,94 @@ export default function ProductTabs() {
     resizable: true
   }), [])
 
+  // Русская локализация для AG Grid
+  const localeText = useMemo(() => ({
+    // Фильтры
+    filterOoo: 'Фильтр...',
+    equals: 'Равно',
+    notEqual: 'Не равно',
+    lessThan: 'Меньше чем',
+    greaterThan: 'Больше чем',
+    lessThanOrEqual: 'Меньше или равно',
+    greaterThanOrEqual: 'Больше или равно',
+    inRange: 'В диапазоне',
+    contains: 'Содержит',
+    notContains: 'Не содержит',
+    startsWith: 'Начинается с',
+    endsWith: 'Заканчивается на',
+    blank: 'Пустое',
+    notBlank: 'Не пустое',
+    
+    // Пагинация
+    page: 'Страница',
+    more: 'Ещё',
+    to: 'до',
+    of: 'из',
+    next: 'Следующая',
+    last: 'Последняя',
+    first: 'Первая',
+    previous: 'Предыдущая',
+    loadingOoo: 'Загрузка...',
+    
+    // Меню колонок
+    columns: 'Колонки',
+    filters: 'Фильтры',
+    rowGroupColumns: 'Группировка',
+    rowGroupColumnsEmptyMessage: 'Перетащите сюда для группировки',
+    valueColumns: 'Значения',
+    pivotMode: 'Режим сводной таблицы',
+    groups: 'Группы',
+    values: 'Значения',
+    pivots: 'Развороты',
+    valueColumnsEmptyMessage: 'Перетащите сюда для агрегации',
+    pivotColumnsEmptyMessage: 'Перетащите сюда для разворота',
+    
+    // Размер страницы
+    pageSize: 'Размер страницы',
+    pageSizeSelector: 'Размер страницы',
+    
+    // Сообщения
+    noRowsToShow: 'Нет данных для отображения',
+    loadingError: 'Ошибка загрузки',
+    
+    // Операции
+    copy: 'Копировать',
+    copyWithHeaders: 'Копировать с заголовками',
+    paste: 'Вставить',
+    export: 'Экспорт',
+    csvExport: 'Экспорт CSV',
+    excelExport: 'Экспорт Excel',
+    
+    // Группировка и агрегация
+    sum: 'Сумма',
+    min: 'Минимум',
+    max: 'Максимум',
+    count: 'Количество',
+    avg: 'Среднее',
+    group: 'Группа',
+    
+    // Меню заголовка
+    pinColumn: 'Закрепить колонку',
+    pinLeft: 'Закрепить слева',
+    pinRight: 'Закрепить справа',
+    noPin: 'Не закреплять',
+    valueAggregation: 'Агрегация значений',
+    autosizeThiscolumn: 'Автоматический размер этой колонки',
+    autosizeAllColumns: 'Автоматический размер всех колонок',
+    groupBy: 'Группировать по',
+    ungroupBy: 'Разгруппировать по',
+    resetColumns: 'Сбросить колонки',
+    expandAll: 'Развернуть всё',
+    collapseAll: 'Свернуть всё',
+    toolPanel: 'Панель инструментов',
+    
+    // Выбор строк
+    selectAll: 'Выбрать всё',
+    selectAllFiltered: 'Выбрать отфильтрованные',
+    deselectAll: 'Снять выделение',
+    deselectAllFiltered: 'Снять выделение с отфильтрованных'
+  }), [])
+
   return (
     <div className="max-w-full overflow-auto">
       {/* Заголовок */}
@@ -403,7 +491,11 @@ export default function ProductTabs() {
             <AgGridReact
               rowData={data}
               columnDefs={columnDefs}
-              defaultColDef={defaultColDef}
+              defaultColDef={{
+                ...defaultColDef,
+                sortingOrder: ['asc', 'desc', null]
+              }}
+              localeText={localeText}
               suppressHorizontalScroll={false}
               suppressColumnVirtualisation={false}
               animateRows={true}
@@ -430,7 +522,6 @@ export default function ProductTabs() {
                 }
                 return null
               }}
-              sortingOrder={['asc', 'desc', null]}
               multiSortKey="ctrl"
             />
           </div>
