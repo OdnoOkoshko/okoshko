@@ -82,3 +82,53 @@
 .ag-theme-alpine .ag-filter-condition {
   margin-bottom: 8px;
 }
+
+/* Исправления для пагинации и размера страницы */
+.ag-theme-alpine .ag-paging-panel {
+  position: relative;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Стабильное позиционирование для селектора размера страницы */
+.ag-theme-alpine .ag-paging-page-size {
+  position: relative;
+  z-index: 100;
+}
+
+.ag-theme-alpine .ag-select {
+  position: relative;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.ag-theme-alpine .ag-select .ag-picker-field-wrapper {
+  background: white;
+  border-radius: 6px;
+}
+
+/* Убираем "прыжки" выпадающего списка */
+.ag-theme-alpine .ag-select .ag-list-item {
+  background: white;
+  padding: 8px 12px;
+  border-bottom: none;
+}
+
+.ag-theme-alpine .ag-select .ag-list-item:hover {
+  background: #f3f4f6;
+}
+
+.ag-theme-alpine .ag-select .ag-list-item-selected {
+  background: #e5e7eb;
+}
+
+/* Фиксированное позиционирование для выпадающего списка */
+.ag-theme-alpine .ag-popup {
+  position: fixed !important;
+  z-index: 9999 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+}

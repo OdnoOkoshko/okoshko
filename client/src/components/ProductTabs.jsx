@@ -348,7 +348,7 @@ export default function ProductTabs() {
     pivotColumnsEmptyMessage: 'Перетащите сюда для разворота',
     
     // Размер страницы
-    pageSize: 'Размер страницы',
+    pageSize: 'Размер страницы:',
     pageSizeSelector: 'Размер страницы',
     
     // Сообщения
