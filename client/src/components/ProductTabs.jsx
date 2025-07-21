@@ -1,7 +1,10 @@
-// ProductTabs.jsx - вкладки товаров с таблицами данных для каждого маркетплейса
+// ProductTabs.jsx - основной компонент с логикой управления данными
 
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import SearchBar from './SearchBar'
+import ProductTable from './ProductTable'
+import PaginationControls from './PaginationControls'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
@@ -20,6 +23,30 @@ export default function ProductTabs() {
     yandex: 'products_yandex'
   }
 
+  // Конфигурация вкладок
+  const tabConfigs = [
+    { 
+      key: 'moysklad', 
+      label: 'Мой Склад', 
+      gradient: 'from-cyan-400 to-blue-500' 
+    },
+    { 
+      key: 'ozon', 
+      label: 'Озон', 
+      gradient: 'from-blue-500 to-blue-600' 
+    },
+    { 
+      key: 'wb', 
+      label: 'Вайлдбериз', 
+      gradient: 'from-purple-500 to-purple-600' 
+    },
+    { 
+      key: 'yandex', 
+      label: 'Яндекс Маркет', 
+      gradient: 'from-yellow-400 to-orange-500' 
+    }
+  ]
+
   // Загрузка всех данных из Supabase
   const loadData = async (tab) => {
     setLoading(true)
@@ -27,8 +54,6 @@ export default function ProductTabs() {
     
     try {
       const tableName = tableMapping[tab]
-      
-      // Загружаем все данные порциями по 1000, чтобы обойти лимит Supabase
       let allData = []
       let from = 0
       const chunkSize = 1000
@@ -43,17 +68,10 @@ export default function ProductTabs() {
           throw new Error(`${tableName}: ${chunkError.message}`)
         }
         
-        if (!chunk || chunk.length === 0) {
-          break
-        }
+        if (!chunk || chunk.length === 0) break
         
         allData = [...allData, ...chunk]
-        
-        // Если получили меньше чем chunkSize, значит это последняя порция
-        if (chunk.length < chunkSize) {
-          break
-        }
-        
+        if (chunk.length < chunkSize) break
         from += chunkSize
       }
       
@@ -66,22 +84,11 @@ export default function ProductTabs() {
     }
   }
 
-  // Загрузка данных при изменении активной вкладки
-  useEffect(() => {
-    loadData(activeTab)
-  }, [activeTab])
-  
-  // Сброс страницы при смене вкладки
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [activeTab])
-  
-  // Сброс страницы при изменении поиска
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm])
-  
-  // Фильтрация данных по поисковому запросу
+  // Эффекты
+  useEffect(() => loadData(activeTab), [activeTab])
+  useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
+
+  // Фильтрация и пагинация
   const filteredData = useMemo(() => {
     if (!searchTerm) return fullData
     const lower = searchTerm.toLowerCase()
@@ -91,8 +98,7 @@ export default function ProductTabs() {
       )
     )
   }, [searchTerm, fullData])
-  
-  // Функции пагинации и фильтрации данных
+
   const totalCount = filteredData.length
   const totalPages = Math.ceil(totalCount / itemsPerPage)
   const start = (currentPage - 1) * itemsPerPage
@@ -100,13 +106,11 @@ export default function ProductTabs() {
   const pageData = filteredData.slice(start, end)
   const startItem = start + 1
   const endItem = Math.min(end, totalCount)
-  
+
+  // Функции навигации
   const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
-    }
+    if (page >= 1 && page <= totalPages) setCurrentPage(page)
   }
-  
   const goToPrevPage = () => goToPage(currentPage - 1)
   const goToNextPage = () => goToPage(currentPage + 1)
 
@@ -114,49 +118,22 @@ export default function ProductTabs() {
     <div className="space-y-6">
       {/* Вкладки */}
       <div className="flex justify-center space-x-1 bg-gray-100 rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('moysklad')}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-            activeTab === 'moysklad'
-              ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          Мой Склад
-        </button>
-        <button
-          onClick={() => setActiveTab('ozon')}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-            activeTab === 'ozon'
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          Озон
-        </button>
-        <button
-          onClick={() => setActiveTab('wb')}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-            activeTab === 'wb'
-              ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          Вайлдбериз
-        </button>
-        <button
-          onClick={() => setActiveTab('yandex')}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-            activeTab === 'yandex'
-              ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          Яндекс Маркет
-        </button>
+        {tabConfigs.map(({ key, label, gradient }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === key
+                ? `bg-gradient-to-r ${gradient} text-white shadow-sm`
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Контент вкладки */}
+      {/* Контент */}
       <div className="min-h-[400px]">
         {loading && (
           <div className="flex items-center justify-center py-16">
@@ -191,16 +168,7 @@ export default function ProductTabs() {
 
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
-            {/* Поле поиска */}
-            <div className="mb-4 flex justify-center">
-              <input
-                type="text"
-                placeholder="Поиск..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-300 px-3 py-2 rounded w-full max-w-md text-sm"
-              />
-            </div>
+            <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             
             {/* Счетчик записей */}
             <div className="mb-4 text-sm text-gray-600">
@@ -211,186 +179,15 @@ export default function ProductTabs() {
               )}
             </div>
             
-            <div className="overflow-x-auto">
-              <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
-                <thead>
-                  <tr style={{ height: '56px' }}>
-                    {Object.keys(filteredData[0] || fullData[0] || {}).map(key => {
-                      // Определяем ширину колонки по названию
-                      let width = '150px'
-                      const keyLower = key.toLowerCase()
-                      
-                      if (keyLower === 'id') width = '250px'
-                      else if (keyLower === 'name') width = '250px'
-                      else if (keyLower.includes('code')) width = '220px'
-                      else if (keyLower.includes('price')) width = '120px'
-                      else if (keyLower === 'barcode') width = '160px'
-                      else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
-                      
-                      return (
-                        <th 
-                          key={key} 
-                          className="px-3 py-3 border bg-gray-100 text-xs text-left font-medium"
-                          style={{ width, minWidth: width, maxWidth: width }}
-                        >
-                          {key}
-                        </th>
-                      )
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageData.map((item, i) => (
-                    <tr key={i} className="hover:bg-gray-50" style={{ height: '56px' }}>
-                      {Object.entries(item).map(([key, value], j) => {
-                        // Определяем ширину колонки
-                        let width = '150px'
-                        const keyLower = key.toLowerCase()
-                        
-                        if (keyLower === 'id') width = '250px'
-                        else if (keyLower === 'name') width = '250px'
-                        else if (keyLower.includes('code')) width = '220px'
-                        else if (keyLower.includes('price')) width = '120px'
-                        else if (keyLower === 'barcode') width = '160px'
-                        else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
-                        
-                        // Проверяем поле с изображением
-                        const isImageField = keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
-                        
-                        // Проверяем поле со ссылкой
-                        const isLinkField = keyLower.includes('link') || keyLower.includes('url')
-                        
-                        if (isImageField && value) {
-                          return (
-                            <td 
-                              key={j} 
-                              className="px-3 py-3 border text-xs text-center align-middle"
-                              style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
-                            >
-                              <img 
-                                src={value}
-                                alt="Товар"
-                                className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
-                                onClick={() => window.open(value, '_blank')}
-                                onError={(e) => {
-                                  e.target.style.display = 'none'
-                                  e.target.parentNode.innerHTML = '<button class="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Открыть</button>'
-                                  e.target.parentNode.onclick = () => window.open(value, '_blank')
-                                }}
-                              />
-                            </td>
-                          )
-                        }
-                        
-                        if (isLinkField && value) {
-                          return (
-                            <td 
-                              key={j} 
-                              className="px-3 py-3 border text-xs text-center align-middle"
-                              style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
-                            >
-                              <button 
-                                onClick={() => window.open(value, '_blank')}
-                                className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                              >
-                                Открыть
-                              </button>
-                            </td>
-                          )
-                        }
-                        
-                        return (
-                          <td 
-                            key={j} 
-                            className="px-3 py-3 border text-xs align-middle overflow-hidden"
-                            style={{ 
-                              width, 
-                              minWidth: width, 
-                              maxWidth: width, 
-                              height: '56px',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                            title={String(value)}
-                          >
-                            {String(value)}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ProductTable pageData={pageData} fullData={fullData} />
             
-            {/* Пагинация */}
-            {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <button
-                  onClick={goToPrevPage}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 text-sm border rounded ${
-                    currentPage === 1 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  ←
-                </button>
-                
-                {/* Номера страниц */}
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  let pageNum
-                  if (totalPages <= 5) {
-                    pageNum = i + 1
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i
-                  } else {
-                    pageNum = currentPage - 2 + i
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => goToPage(pageNum)}
-                      className={`px-3 py-1 text-sm border rounded ${
-                        pageNum === currentPage
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-                
-                {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <>
-                    <span className="px-2 text-gray-500">...</span>
-                    <button
-                      onClick={() => goToPage(totalPages)}
-                      className="px-3 py-1 text-sm border rounded bg-white text-gray-700 hover:bg-gray-50"
-                    >
-                      {totalPages}
-                    </button>
-                  </>
-                )}
-                
-                <button
-                  onClick={goToNextPage}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 text-sm border rounded ${
-                    currentPage === totalPages 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  →
-                </button>
-              </div>
-            )}
+            <PaginationControls 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              goToPage={goToPage}
+              goToPrevPage={goToPrevPage}
+              goToNextPage={goToNextPage}
+            />
           </div>
         )}
       </div>
