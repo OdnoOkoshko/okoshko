@@ -17,6 +17,7 @@ export default function ProductTabs() {
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
+  const [tabLoaded, setTabLoaded] = useState({})
   const [hiddenColumns, setHiddenColumns] = usePersistentState('hiddenColumns', [])
   const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `columnWidths_${activeTab}`, {}, [activeTab])
   const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
@@ -94,10 +95,14 @@ export default function ProductTabs() {
     }
   }
 
-  // Эффекты
+  // Загрузка данных для вкладки при первом открытии
   useEffect(() => {
-    loadData(activeTab)
+    if (!tabLoaded[activeTab]) {
+      loadData(activeTab)
+      setTabLoaded(prev => ({ ...prev, [activeTab]: true }))
+    }
   }, [activeTab])
+  
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
   
 
@@ -233,6 +238,12 @@ export default function ProductTabs() {
     setHiddenColumns([])
   }
 
+  // Функция переключения вкладки
+  const handleTabSwitch = (tabKey) => {
+    setActiveTab(tabKey)
+    // Если вкладка еще не загружена, данные загрузятся в useEffect
+  }
+
   return (
     <div className="space-y-6">
       {/* Вкладки */}
@@ -240,7 +251,7 @@ export default function ProductTabs() {
         {tabConfigs.map(({ key, label, gradient }) => (
           <button
             key={key}
-            onClick={() => setActiveTab(key)}
+            onClick={() => handleTabSwitch(key)}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
               activeTab === key
                 ? `bg-gradient-to-r ${gradient} text-white shadow-sm`
@@ -248,6 +259,9 @@ export default function ProductTabs() {
             }`}
           >
             {label}
+            {!tabLoaded[key] && key !== activeTab && (
+              <span className="ml-1 text-xs opacity-60">•</span>
+            )}
           </button>
         ))}
       </div>
