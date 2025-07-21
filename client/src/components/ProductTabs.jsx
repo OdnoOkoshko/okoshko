@@ -92,13 +92,22 @@ export default function ProductTabs() {
     localStorage.setItem(key, newName)
   }
 
-  // Компонент заголовка с возможностью редактирования
+  // Компонент заголовка с возможностью редактирования и сортировки
   const EditableHeader = ({ column, originalName, tableName }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [headerText, setHeaderText] = useState(getSavedColumnName(originalName, tableName))
 
-    const handleDoubleClick = () => {
+    const handleDoubleClick = (e) => {
+      e.stopPropagation()
       setIsEditing(true)
+    }
+
+    const handleClick = (e) => {
+      if (!isEditing) {
+        // Обработка сортировки при обычном клике
+        e.stopPropagation()
+        column.sort()
+      }
     }
 
     const handleSubmit = (e) => {
@@ -132,9 +141,19 @@ export default function ProductTabs() {
     }
 
     return (
-      <span onDoubleClick={handleDoubleClick} className="cursor-pointer select-none">
-        {headerText}
-      </span>
+      <div 
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick} 
+        className="cursor-pointer select-none hover:text-blue-600 transition-colors flex items-center"
+        title="Клик - сортировка, двойной клик - переименовать"
+      >
+        <span>{headerText}</span>
+        {column.isSorted() && (
+          <span className="ml-1 text-blue-500">
+            {column.isSortAscending() ? '↑' : '↓'}
+          </span>
+        )}
+      </div>
     )
   }
 
