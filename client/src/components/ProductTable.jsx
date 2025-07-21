@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
-export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '', columnWidths, setColumnWidths, activeTab }) {
+export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '', columnWidths, setColumnWidths, activeTab, sortConfig, onSort }) {
   const [isResizing, setIsResizing] = useState(false)
   const [resizeColumn, setResizeColumn] = useState(null)
   const [startX, setStartX] = useState(0)
@@ -158,17 +158,30 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
             <tr style={{ height: '48px' }}>
               {visibleColumns.map(key => {
                 const width = getColumnWidth(key)
+                const isSorted = sortConfig.column === key
                 return (
                   <th 
                     key={key} 
-                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative"
+                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors"
                     style={cellStyles(width)}
+                    onClick={() => onSort(key)}
+                    title="Нажмите для сортировки"
                   >
-                    {key}
+                    <div className="flex items-center justify-between pr-2">
+                      <span>{key}</span>
+                      {isSorted && (
+                        <span className="text-blue-600 font-bold">
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
+                        </span>
+                      )}
+                    </div>
                     {/* Ручка для изменения ширины */}
                     <div
                       className="absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-blue-300 bg-transparent"
-                      onMouseDown={(e) => handleMouseDown(e, key)}
+                      onMouseDown={(e) => {
+                        e.stopPropagation() // Предотвращаем срабатывание сортировки
+                        handleMouseDown(e, key)
+                      }}
                       title="Перетащите для изменения ширины"
                     />
                   </th>

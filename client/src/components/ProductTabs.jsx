@@ -22,6 +22,7 @@ export default function ProductTabs() {
     const saved = localStorage.getItem(`columnWidths_${activeTab}`)
     return saved ? JSON.parse(saved) : {}
   })
+  const [sortConfig, setSortConfig] = useState({ column: null, direction: null })
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -139,17 +140,30 @@ export default function ProductTabs() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Оптимизированная фильтрация данных по поисковому запросу
-  const filteredData = useMemo(() => {
-    if (searchTerm.trim() === '') return fullData
+  // Фильтрация и сортировка данных
+  const processedData = useMemo(() => {
+    // Сначала фильтрация
+    let filtered = fullData
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase().trim()
+      filtered = fullData.filter(item => {
+        const searchableText = Object.values(item).join(' ').toLowerCase()
+        return searchableText.includes(searchLower)
+      })
+    }
     
-    const searchLower = searchTerm.toLowerCase().trim()
-    return fullData.filter(item => {
-      // Объединяем все значения строки в одну строку для поиска
-      const searchableText = Object.values(item).join(' ').toLowerCase()
-      return searchableText.includes(searchLower)
-    })
-  }, [fullData, searchTerm])
+    // Затем сортировка
+    if (sortConfig.column && sortConfig.direction) {
+      const dataType = getColumnDataType(sortConfig.column, filtered)
+      filtered = [...filtered].sort((a, b) => 
+        compareValues(a[sortConfig.column], b[sortConfig.column], dataType, sortConfig.direction)
+      )
+    }
+    
+    return filtered
+  }, [fullData, searchTerm, sortConfig])
+
+  const filteredData = processedData
 
   const totalCount = filteredData.length
   const totalPages = Math.ceil(totalCount / itemsPerPage)
@@ -173,6 +187,56 @@ export default function ProductTabs() {
         ? prev.filter(c => c !== column)
         : [...prev, column]
     )
+  }
+
+  // Определение типа данных в колонке
+  const getColumnDataType = (columnKey, data) => {
+    if (!data.length) return 'string'
+    
+    const samples = data.slice(0, 10).map(item => item[columnKey]).filter(val => val != null && val !== '')
+    if (samples.length === 0) return 'string'
+    
+    // Проверяем, все ли значения числа
+    const isAllNumbers = samples.every(val => !isNaN(parseFloat(val)) && isFinite(val))
+    if (isAllNumbers) return 'number'
+    
+    return 'string'
+  }
+
+  // Функция сортировки
+  const handleSort = (columnKey) => {
+    let newDirection = 'asc'
+    
+    if (sortConfig.column === columnKey) {
+      if (sortConfig.direction === 'asc') {
+        newDirection = 'desc'
+      } else if (sortConfig.direction === 'desc') {
+        newDirection = null
+      }
+    }
+    
+    setSortConfig({ 
+      column: newDirection ? columnKey : null, 
+      direction: newDirection 
+    })
+  }
+
+  // Функция сравнения для сортировки
+  const compareValues = (a, b, dataType, direction) => {
+    if (a == null || a === '') a = ''
+    if (b == null || b === '') b = ''
+    
+    let result = 0
+    
+    if (dataType === 'number') {
+      const numA = parseFloat(a) || 0
+      const numB = parseFloat(b) || 0
+      result = numA - numB
+    } else {
+      result = String(a).localeCompare(String(b), 'ru', { numeric: true, sensitivity: 'base' })
+    }
+    
+    return direction === 'desc' ? -result : result
   }
 
   return (
@@ -281,6 +345,8 @@ export default function ProductTabs() {
                 columnWidths={columnWidths}
                 setColumnWidths={setColumnWidths}
                 activeTab={activeTab}
+                sortConfig={sortConfig}
+                onSort={handleSort}
               />
             )}
             
