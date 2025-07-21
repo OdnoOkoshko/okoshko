@@ -3,20 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
-// Функция для подсветки совпадений в тексте
-function highlightMatches(text, searchTerm) {
-  if (!searchTerm || !text) return text
-  
-  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-  const parts = String(text).split(regex)
-  
-  return parts.map((part, index) => 
-    regex.test(part) ? 
-      <mark key={index} className="bg-yellow-200 px-0.5 rounded">{part}</mark> : 
-      part
-  )
-}
-
 export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '' }) {
 
 
@@ -179,7 +165,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                       style={textCellStyles(width)}
                       title={String(value)}
                     >
-                      {highlightMatches(String(value), searchTerm)}
+                      {String(value)}
                     </td>
                   )
                 })}
