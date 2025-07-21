@@ -139,36 +139,67 @@ export default function ProductTabs() {
 
         {!loading && !error && data.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
-            <table className="w-full table-auto border border-gray-300">
+            <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
               <thead>
-                <tr>
-                  {Object.keys(data[0]).map(key => (
-                    <th key={key} className="px-2 py-1 border bg-gray-100 text-xs text-left font-medium">
-                      {key}
-                    </th>
-                  ))}
+                <tr style={{ height: '56px' }}>
+                  {Object.keys(data[0]).map(key => {
+                    // Определяем ширину колонки по названию
+                    let width = '150px' // по умолчанию
+                    const keyLower = key.toLowerCase()
+                    
+                    if (keyLower === 'id') width = '250px'
+                    else if (keyLower === 'name') width = '250px'
+                    else if (keyLower.includes('code')) width = '220px'
+                    else if (keyLower.includes('price')) width = '120px'
+                    else if (keyLower === 'barcode') width = '160px'
+                    else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
+                    
+                    return (
+                      <th 
+                        key={key} 
+                        className="px-3 py-3 border bg-gray-100 text-xs text-left font-medium"
+                        style={{ width, minWidth: width, maxWidth: width }}
+                      >
+                        {key}
+                      </th>
+                    )
+                  })}
                 </tr>
               </thead>
               <tbody>
                 {data.map((item, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
+                  <tr key={i} className="hover:bg-gray-50" style={{ height: '56px' }}>
                     {Object.entries(item).map(([key, value], j) => {
+                      // Определяем ширину колонки (такая же как в заголовке)
+                      let width = '150px'
+                      const keyLower = key.toLowerCase()
+                      
+                      if (keyLower === 'id') width = '250px'
+                      else if (keyLower === 'name') width = '250px'
+                      else if (keyLower.includes('code')) width = '220px'
+                      else if (keyLower.includes('price')) width = '120px'
+                      else if (keyLower === 'barcode') width = '160px'
+                      else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
+                      
                       // Проверяем если это поле с изображением
-                      const isImageField = key.toLowerCase().includes('image') || 
-                                         key.toLowerCase().includes('photo') || 
-                                         key.toLowerCase().includes('picture')
+                      const isImageField = keyLower.includes('image') || 
+                                         keyLower.includes('photo') || 
+                                         keyLower.includes('picture')
                       
                       // Проверяем если это поле со ссылкой
-                      const isLinkField = key.toLowerCase().includes('link') || 
-                                        key.toLowerCase().includes('url')
+                      const isLinkField = keyLower.includes('link') || keyLower.includes('url')
                       
                       if (isImageField && value) {
                         return (
-                          <td key={j} className="px-2 py-1 border text-xs">
+                          <td 
+                            key={j} 
+                            className="px-3 py-3 border text-xs text-center align-middle"
+                            style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
+                          >
                             <img 
                               src={value}
                               alt="Товар"
-                              className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80"
+                              className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
                               onClick={() => window.open(value, '_blank')}
                               onError={(e) => {
                                 e.target.style.display = 'none'
@@ -182,7 +213,11 @@ export default function ProductTabs() {
                       
                       if (isLinkField && value) {
                         return (
-                          <td key={j} className="px-2 py-1 border text-xs">
+                          <td 
+                            key={j} 
+                            className="px-3 py-3 border text-xs text-center align-middle"
+                            style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
+                          >
                             <button 
                               onClick={() => window.open(value, '_blank')}
                               className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -194,7 +229,19 @@ export default function ProductTabs() {
                       }
                       
                       return (
-                        <td key={j} className="px-2 py-1 border text-xs truncate max-w-[150px]" title={String(value)}>
+                        <td 
+                          key={j} 
+                          className="px-3 py-3 border text-xs align-middle overflow-hidden"
+                          style={{ 
+                            width, 
+                            minWidth: width, 
+                            maxWidth: width, 
+                            height: '56px',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                          title={String(value)}
+                        >
                           {String(value)}
                         </td>
                       )
