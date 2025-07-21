@@ -10,7 +10,13 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
   const [startWidth, setStartWidth] = useState(0)
   const [brokenImages, setBrokenImages] = useState(new Set())
 
-  if (!pageData.length) return null
+  if (!pageData.length) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <div className="text-lg font-medium">Нет данных для отображения</div>
+      </div>
+    )
+  }
 
   // Получение всех колонок - мемоизация для производительности
   const allColumns = useMemo(() => {
@@ -81,7 +87,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isResizing, startX, startWidth, resizeColumn])
+  }, [isResizing, handleMouseMove, handleMouseUp])
 
   // Проверка типа поля - мемоизация для производительности
   const isImageField = useCallback((key) => {
@@ -195,7 +201,12 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                         style={cellStyles(width)}
                       >
                         {isImageBroken ? (
-                          <span className="text-gray-500">—</span>
+                          <button 
+                            disabled
+                            className="px-2 py-1 text-xs bg-gray-300 text-gray-500 rounded cursor-not-allowed"
+                          >
+                            Открыть
+                          </button>
                         ) : (
                           <img 
                             src={value}
