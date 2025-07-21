@@ -35,9 +35,17 @@ export default function ProductTabs() {
     
     try {
       const tableName = tableMapping[tab]
+      
+      // Сначала получаем общее количество записей
+      const { count } = await supabase
+        .from(tableName)
+        .select('*', { count: 'exact', head: true })
+      
+      // Загружаем все данные (убираем лимит 1000)
       const { data: tableData, error: tableError } = await supabase
         .from(tableName)
         .select('*')
+        .range(0, count - 1)
       
       if (tableError) {
         throw new Error(`${tableName}: ${tableError.message}`)
