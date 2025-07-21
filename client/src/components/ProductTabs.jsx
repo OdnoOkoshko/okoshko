@@ -103,7 +103,6 @@ export default function ProductTabs() {
       e.preventDefault()
       saveColumnName(originalName, headerText, tableName)
       setIsEditing(false)
-      // Обновляем заголовок в колонке
       column.setColDef({ ...column.getColDef(), headerName: headerText })
     }
 
@@ -137,6 +136,42 @@ export default function ProductTabs() {
     )
   }
 
+  // Компонент для отображения ссылок
+  const LinkCellRenderer = ({ value }) => {
+    if (!value) return ''
+    
+    const handleClick = () => {
+      window.open(value, '_blank')
+    }
+
+    return (
+      <button 
+        onClick={handleClick}
+        className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+      >
+        Открыть
+      </button>
+    )
+  }
+
+  // Компонент для обычных ячеек с tooltip
+  const DefaultCellRenderer = ({ value }) => {
+    if (!value) return ''
+    
+    const displayValue = String(value)
+    const isLong = displayValue.length > 30
+    
+    return (
+      <div 
+        className="truncate" 
+        title={isLong ? displayValue : ''}
+        style={{ maxWidth: '100%' }}
+      >
+        {displayValue}
+      </div>
+    )
+  }
+
   // Генерация колонок для AG Grid
   const columnDefs = useMemo(() => {
     if (data.length === 0) return []
@@ -144,22 +179,33 @@ export default function ProductTabs() {
     const columns = Object.keys(data[0])
     const tableName = tableMapping[activeTab]
 
-    return columns.map(field => ({
-      field,
-      headerName: getSavedColumnName(field, tableName),
-      sortable: true,
-      filter: true,
-      resizable: true,
-      headerComponent: (params) => (
-        <EditableHeader 
-          column={params.column} 
-          originalName={field} 
-          tableName={tableName} 
-        />
-      ),
-      minWidth: 120,
-      flex: 1
-    }))
+    return columns.map(field => {
+      const isLinkField = field.toLowerCase().includes('link') || field.toLowerCase().includes('url')
+      
+      return {
+        field,
+        headerName: getSavedColumnName(field, tableName),
+        sortable: true,
+        filter: true,
+        resizable: true,
+        headerComponent: (params) => (
+          <EditableHeader 
+            column={params.column} 
+            originalName={field} 
+            tableName={tableName} 
+          />
+        ),
+        cellRenderer: isLinkField ? LinkCellRenderer : DefaultCellRenderer,
+        minWidth: isLinkField ? 100 : 120,
+        maxWidth: isLinkField ? 150 : undefined,
+        flex: isLinkField ? 0 : 1,
+        cellStyle: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap'
+        }
+      }
+    })
   }, [data, activeTab])
 
   // Настройки AG Grid
@@ -171,27 +217,32 @@ export default function ProductTabs() {
 
   return (
     <div className="w-full">
-      {/* Вкладки */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {tab.name}
-            </button>
-          ))}
-        </nav>
+      {/* Заголовок */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Okoshko - Единое окно заказов</h1>
+        
+        {/* Вкладки */}
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-blue-500 text-white border-b-2 border-blue-500'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+                }`}
+              >
+                {tab.name}
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {/* Содержимое */}
-      <div className="mt-6">
+      <div>
         {loading && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
@@ -212,7 +263,7 @@ export default function ProductTabs() {
         )}
 
         {!loading && !error && data.length > 0 && (
-          <div className="ag-theme-alpine w-full" style={{ height: '600px' }}>
+          <div className="ag-theme-alpine w-full mb-6" style={{ height: '600px' }}>
             <AgGridReact
               rowData={data}
               columnDefs={columnDefs}
@@ -224,6 +275,12 @@ export default function ProductTabs() {
               pagination={true}
               paginationPageSize={100}
               paginationPageSizeSelector={[50, 100, 200, 500]}
+              onGridReady={(params) => {
+                // Автоматический размер колонок при загрузке
+                setTimeout(() => {
+                  params.api.sizeColumnsToFit()
+                }, 100)
+              }}
             />
           </div>
         )}
