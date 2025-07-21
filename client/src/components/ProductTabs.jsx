@@ -78,7 +78,7 @@ export default function ProductTabs() {
   return (
     <div className="space-y-6">
       {/* Вкладки */}
-      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex justify-center space-x-1 bg-gray-100 rounded-lg p-1">
         <button
           onClick={() => setActiveTab('moysklad')}
           className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
