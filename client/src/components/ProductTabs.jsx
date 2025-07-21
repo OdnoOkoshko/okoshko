@@ -1,29 +1,48 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
-  // Мок-данные как запросил пользователь
-  const mockData = {
-    moysklad: [
-      { id: 1, name: 'Товар МойСклад 1', price: '1500 ₽' },
-      { id: 2, name: 'Товар МойСклад 2', price: '2300 ₽' },
-      { id: 3, name: 'Товар МойСклад 3', price: '890 ₽' }
-    ],
-    ozon: [
-      { id: 1, name: 'Товар Ozon 1', price: '1200 ₽' },
-      { id: 2, name: 'Товар Ozon 2', price: '3400 ₽' }
-    ],
-    wb: [
-      { id: 1, name: 'Товар WB 1', price: '750 ₽' },
-      { id: 2, name: 'Товар WB 2', price: '1800 ₽' },
-      { id: 3, name: 'Товар WB 3', price: '2100 ₽' }
-    ],
-    yandex: [
-      { id: 1, name: 'Товар Яндекс 1', price: '950 ₽' },
-      { id: 2, name: 'Товар Яндекс 2', price: '2600 ₽' }
-    ]
+  // Маппинг вкладок к таблицам
+  const tableMapping = {
+    moysklad: 'products_moysklad',
+    ozon: 'products_ozon', 
+    wb: 'products_wb',
+    yandex: 'products_yandex'
   }
+
+  // Загрузка данных из Supabase
+  const loadData = async (tab) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const tableName = tableMapping[tab]
+      const { data: tableData, error: tableError } = await supabase
+        .from(tableName)
+        .select('*')
+      
+      if (tableError) {
+        throw new Error(`Ошибка загрузки ${tableName}: ${tableError.message}`)
+      }
+      
+      setData(tableData || [])
+    } catch (err) {
+      setError(err.message)
+      setData([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Загрузка данных при изменении активной вкладки
+  useEffect(() => {
+    loadData(activeTab)
+  }, [activeTab])
 
   const tabs = [
     { id: 'moysklad', name: 'МойСклад' },
@@ -31,6 +50,9 @@ export default function ProductTabs() {
     { id: 'wb', name: 'WB' },
     { id: 'yandex', name: 'Яндекс' }
   ]
+
+  // Получение колонок из первой записи данных
+  const columns = data.length > 0 ? Object.keys(data[0]) : []
 
   return (
     <div className="w-full">
@@ -55,36 +77,48 @@ export default function ProductTabs() {
 
       {/* Таблица */}
       <div className="mt-6">
-        <table className="min-w-full bg-white border border-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                Название
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                Цена
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {mockData[activeTab].map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {product.id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {product.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {product.price}
-                </td>
+        {loading && (
+          <div className="text-center py-8">
+            <div className="text-gray-500">Загрузка данных...</div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && data.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            Нет данных для отображения
+          </div>
+        )}
+
+        {!loading && !error && data.length > 0 && (
+          <table className="min-w-full bg-white border border-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {columns.map((column) => (
+                  <th key={column} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                    {column}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {data.map((row, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  {columns.map((column) => (
+                    <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {row[column]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )
