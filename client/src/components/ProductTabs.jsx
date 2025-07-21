@@ -58,8 +58,7 @@ export default function ProductTabs() {
   console.log('Key длина:', currentKey?.length)
   console.log('Старый URL?:', currentUrl === 'https://stlffgzpqgzishvqhwad.supabase.co')
   
-  const hasValidKeys = currentUrl && currentKey && 
-                      currentUrl !== 'https://stlffgzpqgzishvqhwad.supabase.co'
+  const hasValidKeys = currentUrl && currentKey
 
   console.log('Ключи валидны:', hasValidKeys)
 
