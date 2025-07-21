@@ -120,16 +120,17 @@ export default function ProductTabs() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Фильтрация и пагинация
+  // Оптимизированная фильтрация данных по поисковому запросу
   const filteredData = useMemo(() => {
-    if (!searchTerm) return fullData
-    const lower = searchTerm.toLowerCase()
-    return fullData.filter(item =>
-      Object.values(item).some(val =>
-        String(val).toLowerCase().includes(lower)
-      )
-    )
-  }, [searchTerm, fullData])
+    if (searchTerm.trim() === '') return fullData
+    
+    const searchLower = searchTerm.toLowerCase().trim()
+    return fullData.filter(item => {
+      // Объединяем все значения строки в одну строку для поиска
+      const searchableText = Object.values(item).join(' ').toLowerCase()
+      return searchableText.includes(searchLower)
+    })
+  }, [fullData, searchTerm])
 
   const totalCount = filteredData.length
   const totalPages = Math.ceil(totalCount / itemsPerPage)
@@ -240,17 +241,26 @@ export default function ProductTabs() {
               </div>
             </div>
             
-            <ProductTable 
-              pageData={pageData} 
-              fullData={fullData}
-              showColumnMenu={showColumnMenu}
-              setShowColumnMenu={setShowColumnMenu}
-              hiddenColumns={hiddenColumns}
-              setHiddenColumns={setHiddenColumns}
-              menuRef={menuRef}
-              buttonRef={buttonRef}
-              toggleColumn={toggleColumn}
-            />
+            {pageData.length === 0 && searchTerm.trim() !== '' ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-4xl mb-4">🔍</div>
+                <div className="text-lg font-medium">Нет совпадений</div>
+                <div className="text-sm mt-2">Попробуйте изменить поисковый запрос</div>
+              </div>
+            ) : (
+              <ProductTable 
+                pageData={pageData} 
+                fullData={fullData}
+                showColumnMenu={showColumnMenu}
+                setShowColumnMenu={setShowColumnMenu}
+                hiddenColumns={hiddenColumns}
+                setHiddenColumns={setHiddenColumns}
+                menuRef={menuRef}
+                buttonRef={buttonRef}
+                toggleColumn={toggleColumn}
+                searchTerm={searchTerm}
+              />
+            )}
             
             <PaginationControls 
               currentPage={currentPage}

@@ -3,7 +3,21 @@
 import { useState, useEffect, useRef } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
-export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn }) {
+// Функция для подсветки совпадений в тексте
+function highlightMatches(text, searchTerm) {
+  if (!searchTerm || !text) return text
+  
+  const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+  const parts = String(text).split(regex)
+  
+  return parts.map((part, index) => 
+    regex.test(part) ? 
+      <mark key={index} className="bg-yellow-200 px-0.5 rounded">{part}</mark> : 
+      part
+  )
+}
+
+export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '' }) {
 
 
   if (!pageData.length) return null
@@ -165,7 +179,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                       style={textCellStyles(width)}
                       title={String(value)}
                     >
-                      {String(value)}
+                      {highlightMatches(String(value), searchTerm)}
                     </td>
                   )
                 })}
