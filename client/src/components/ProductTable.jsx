@@ -3,36 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
-export default function ProductTable({ pageData, fullData }) {
-  const [hiddenColumns, setHiddenColumns] = useState(() => {
-    const saved = localStorage.getItem('hiddenColumns')
-    return saved ? JSON.parse(saved) : []
-  })
-  const [showColumnMenu, setShowColumnMenu] = useState(false)
-  const menuRef = useRef(null)
-  const buttonRef = useRef(null)
+export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn }) {
 
-  // Сохранение в localStorage при изменении hiddenColumns
-  useEffect(() => {
-    localStorage.setItem('hiddenColumns', JSON.stringify(hiddenColumns))
-  }, [hiddenColumns])
-
-  // Закрытие меню при клике вне его
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        setShowColumnMenu(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
 
   if (!pageData.length) return null
 
@@ -42,14 +14,7 @@ export default function ProductTable({ pageData, fullData }) {
   // Фильтрация видимых колонок
   const visibleColumns = allColumns.filter(col => !hiddenColumns.includes(col))
 
-  // Переключение видимости колонки
-  const toggleColumn = (column) => {
-    setHiddenColumns(prev =>
-      prev.includes(column)
-        ? prev.filter(c => c !== column)
-        : [...prev, column]
-    )
-  }
+
 
   // Определение ширины колонки по названию
   const getColumnWidth = (key) => {
@@ -90,23 +55,11 @@ export default function ProductTable({ pageData, fullData }) {
 
   return (
     <div className="relative">
-      {/* Кнопка управления столбцами */}
-      <div className="flex justify-end mb-2">
-        <button
-          ref={buttonRef}
-          onClick={() => setShowColumnMenu(!showColumnMenu)}
-          className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors"
-          title="Управление столбцами"
-        >
-          <FiSettings size={16} />
-        </button>
-      </div>
-
       {/* Выпадающее меню управления столбцами */}
       {showColumnMenu && (
         <div
           ref={menuRef}
-          className="absolute right-0 top-10 z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-[200px]"
+          className="absolute right-0 top-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-[200px]"
         >
           <div className="text-sm font-medium text-gray-700 mb-2">Видимые столбцы:</div>
           <div className="space-y-2 max-h-60 overflow-y-auto">

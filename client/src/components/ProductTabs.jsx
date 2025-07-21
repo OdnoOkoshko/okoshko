@@ -1,7 +1,8 @@
 // ProductTabs.jsx - основной компонент с логикой управления данными
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { FiSettings } from 'react-icons/fi'
 import SearchBar from './SearchBar'
 import ProductTable from './ProductTable'
 import PaginationControls from './PaginationControls'
@@ -13,6 +14,13 @@ export default function ProductTabs() {
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
+  const [hiddenColumns, setHiddenColumns] = useState(() => {
+    const saved = localStorage.getItem('hiddenColumns')
+    return saved ? JSON.parse(saved) : []
+  })
+  const [showColumnMenu, setShowColumnMenu] = useState(false)
+  const menuRef = useRef(null)
+  const buttonRef = useRef(null)
   const itemsPerPage = 100
 
   // Маппинг вкладок на таблицы в БД
@@ -89,6 +97,28 @@ export default function ProductTabs() {
     loadData(activeTab)
   }, [activeTab])
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
+  
+  // Сохранение в localStorage при изменении hiddenColumns
+  useEffect(() => {
+    localStorage.setItem('hiddenColumns', JSON.stringify(hiddenColumns))
+  }, [hiddenColumns])
+
+  // Закрытие меню при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        setShowColumnMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Фильтрация и пагинация
   const filteredData = useMemo(() => {
@@ -115,6 +145,15 @@ export default function ProductTabs() {
   }
   const goToPrevPage = () => goToPage(currentPage - 1)
   const goToNextPage = () => goToPage(currentPage + 1)
+  
+  // Переключение видимости колонки
+  const toggleColumn = (column) => {
+    setHiddenColumns(prev =>
+      prev.includes(column)
+        ? prev.filter(c => c !== column)
+        : [...prev, column]
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -170,18 +209,42 @@ export default function ProductTabs() {
 
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
-            <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-            
-            {/* Счетчик записей */}
-            <div className="mb-4 text-sm text-gray-600">
-              {searchTerm ? (
-                <>Найдено {filteredData.length} из {fullData.length} • Показано {startItem}–{endItem}</>
-              ) : (
-                <>Показано {startItem}–{endItem} из {totalCount}</>
-              )}
+            {/* Компактная панель управления */}
+            <div className="flex items-center justify-between mb-4 py-2">
+              {/* Левая часть - поиск */}
+              <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+              
+              {/* Центральная часть - счетчик записей */}
+              <div className="text-sm text-gray-600 flex-1 text-center">
+                {searchTerm ? (
+                  <>Найдено {filteredData.length} из {fullData.length} • Показано {startItem}–{endItem}</>
+                ) : (
+                  <>Показано {startItem}–{endItem} из {totalCount}</>
+                )}
+              </div>
+              
+              {/* Правая часть - кнопка управления столбцами */}
+              <button
+                ref={buttonRef}
+                onClick={() => setShowColumnMenu(!showColumnMenu)}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+                title="Управление столбцами"
+              >
+                <FiSettings size={20} />
+              </button>
             </div>
             
-            <ProductTable pageData={pageData} fullData={fullData} />
+            <ProductTable 
+              pageData={pageData} 
+              fullData={fullData}
+              showColumnMenu={showColumnMenu}
+              setShowColumnMenu={setShowColumnMenu}
+              hiddenColumns={hiddenColumns}
+              setHiddenColumns={setHiddenColumns}
+              menuRef={menuRef}
+              buttonRef={buttonRef}
+              toggleColumn={toggleColumn}
+            />
             
             <PaginationControls 
               currentPage={currentPage}
