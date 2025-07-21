@@ -495,6 +495,7 @@ export default function ProductTabs() {
                 ...defaultColDef,
                 sortingOrder: ['asc', 'desc', null]
               }}
+              theme="legacy"
               localeText={localeText}
               suppressHorizontalScroll={false}
               suppressColumnVirtualisation={false}
