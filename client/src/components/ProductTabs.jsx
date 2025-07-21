@@ -14,7 +14,7 @@ export default function ProductTabs() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [gridApi, setGridApi] = useState(null)
-  const [showColumnsPanel, setShowColumnsPanel] = useState(false)
+
 
   const tabs = [
     { id: 'moysklad', name: 'МойСклад' },
@@ -347,57 +347,23 @@ export default function ProductTabs() {
       <div className="mb-6 space-y-4">
         {/* Вкладки и управление */}
         <div className="bg-gray-50 p-2 rounded-lg">
-          <div className="flex justify-between items-center">
-            <nav className="flex space-x-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-6 py-3 rounded-md font-medium text-sm transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                      : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 shadow-sm'
-                  }`}
-                >
-                  {tab.name}
-                </button>
-              ))}
-            </nav>
-            
-            {/* Кнопка управления колонками */}
-            {gridApi && (
+          <nav className="flex space-x-2">
+            {tabs.map((tab) => (
               <button
-                onClick={() => setShowColumnsPanel(!showColumnsPanel)}
-                className="px-4 py-2 bg-white text-gray-700 rounded-md shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-3 rounded-md font-medium text-sm transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-blue-500 text-white shadow-md transform scale-105'
+                    : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 shadow-sm'
+                }`}
               >
-                📋 Колонки
+                {tab.name}
               </button>
-            )}
-          </div>
+            ))}
+          </nav>
         </div>
       </div>
-
-      {/* Панель управления колонками */}
-      {showColumnsPanel && gridApi && (
-        <div className="bg-white p-4 rounded-lg shadow-md border">
-          <h3 className="font-medium text-gray-900 mb-3">Управление колонками</h3>
-          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-            {gridApi.getColumns()?.map((column) => (
-              <label key={column.getColId()} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={column.isVisible()}
-                  onChange={(e) => {
-                    gridApi.setColumnsVisible([column.getColId()], e.target.checked)
-                  }}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">{column.getColDef().headerName}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Содержимое */}
       <div className="space-y-4">
