@@ -1,3 +1,5 @@
+// ProductTabs.jsx - вкладки товаров с таблицами данных для каждого маркетплейса
+
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
@@ -6,14 +8,11 @@ export default function ProductTabs() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const itemsPerPage = 100
 
-  const tabs = [
-    { id: 'moysklad', name: 'Мой Склад' },
-    { id: 'ozon', name: 'Озон' },
-    { id: 'wb', name: 'Вайлдбериз' },
-    { id: 'yandex', name: 'Яндекс Маркет' }
-  ]
-
+  // Маппинг вкладок на таблицы в БД
   const tableMapping = {
     moysklad: 'products_moysklad',
     ozon: 'products_ozon',
@@ -21,96 +20,114 @@ export default function ProductTabs() {
     yandex: 'products_yandex'
   }
 
-  // Загрузка данных из Supabase
-  const loadData = async (tab) => {
+  // Загрузка данных из Supabase с пагинацией
+  const loadData = async (tab, page = 1) => {
     setLoading(true)
     setError(null)
     
     try {
       const tableName = tableMapping[tab]
+      const from = (page - 1) * itemsPerPage
+      const to = from + itemsPerPage - 1
       
-      // Загружаем все данные порциями по 1000, чтобы обойти лимит Supabase
-      let allData = []
-      let from = 0
-      const chunkSize = 1000
+      // Загружаем данные для текущей страницы
+      const { data: pageData, error: dataError, count } = await supabase
+        .from(tableName)
+        .select('*', { count: 'exact' })
+        .range(from, to)
       
-      while (true) {
-        const { data: chunk, error: chunkError } = await supabase
-          .from(tableName)
-          .select('*')
-          .range(from, from + chunkSize - 1)
-        
-        if (chunkError) {
-          throw new Error(`${tableName}: ${chunkError.message}`)
-        }
-        
-        if (!chunk || chunk.length === 0) {
-          break
-        }
-        
-        allData = [...allData, ...chunk]
-        
-        // Если получили меньше чем chunkSize, значит это последняя порция
-        if (chunk.length < chunkSize) {
-          break
-        }
-        
-        from += chunkSize
+      if (dataError) {
+        throw new Error(`${tableName}: ${dataError.message}`)
       }
       
-      setData(allData)
+      setData(pageData || [])
+      setTotalCount(count || 0)
     } catch (err) {
       setError(err.message)
       setData([])
+      setTotalCount(0)
     } finally {
       setLoading(false)
     }
   }
 
-  // Загрузка данных при изменении активной вкладки
+  // Загрузка данных при изменении активной вкладки или страницы
   useEffect(() => {
-    loadData(activeTab)
+    loadData(activeTab, currentPage)
+  }, [activeTab, currentPage])
+  
+  // Сброс страницы при смене вкладки
+  useEffect(() => {
+    setCurrentPage(1)
   }, [activeTab])
+  
+  // Функции пагинации
+  const totalPages = Math.ceil(totalCount / itemsPerPage)
+  const startItem = (currentPage - 1) * itemsPerPage + 1
+  const endItem = Math.min(currentPage * itemsPerPage, totalCount)
+  
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+  
+  const goToPrevPage = () => goToPage(currentPage - 1)
+  const goToNextPage = () => goToPage(currentPage + 1)
 
   return (
-    <div className="max-w-full overflow-auto">
-      <div className="mb-6 space-y-4">
-        {/* Вкладки */}
-        <div className="flex justify-center gap-2">
-          {tabs.map((tab) => {
-            const getTabStyles = (tabId) => {
-              const baseClasses = 'px-4 py-2 rounded-md text-sm font-medium transition-opacity'
-              const gradients = {
-                moysklad: 'bg-gradient-to-r from-[#00B2FF] to-[#009EE3] text-white',
-                ozon: 'bg-gradient-to-r from-[#005BFF] to-[#338EFF] text-white',
-                wb: 'bg-gradient-to-r from-[#A72974] to-[#D91A94] text-white',
-                yandex: 'bg-gradient-to-r from-[#FFCC00] to-[#FF9900] text-black'
-              }
-              
-              const opacity = activeTab === tabId ? 'opacity-100' : 'opacity-80 hover:opacity-100'
-              return `${baseClasses} ${gradients[tabId]} ${opacity}`
-            }
-            
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={getTabStyles(tab.id)}
-              >
-                {tab.name}
-              </button>
-            )
-          })}
-        </div>
+    <div className="space-y-6">
+      {/* Вкладки */}
+      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => setActiveTab('moysklad')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+            activeTab === 'moysklad'
+              ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Мой Склад
+        </button>
+        <button
+          onClick={() => setActiveTab('ozon')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+            activeTab === 'ozon'
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Озон
+        </button>
+        <button
+          onClick={() => setActiveTab('wb')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+            activeTab === 'wb'
+              ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Вайлдбериз
+        </button>
+        <button
+          onClick={() => setActiveTab('yandex')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+            activeTab === 'yandex'
+              ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          Яндекс Маркет
+        </button>
       </div>
 
-      {/* Содержимое */}
-      <div className="mt-4 space-y-4">
+      {/* Контент вкладки */}
+      <div className="min-h-[400px]">
         {loading && (
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-              <div className="text-gray-600 mt-4 font-medium">Загрузка данных...</div>
+          <div className="flex items-center justify-center py-16">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"></div>
+              <span className="text-gray-600">Загрузка данных...</span>
             </div>
           </div>
         )}
@@ -138,39 +155,18 @@ export default function ProductTabs() {
         )}
 
         {!loading && !error && data.length > 0 && (
-          <div className="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
-            <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
-              <thead>
-                <tr style={{ height: '56px' }}>
-                  {Object.keys(data[0]).map(key => {
-                    // Определяем ширину колонки по названию
-                    let width = '150px' // по умолчанию
-                    const keyLower = key.toLowerCase()
-                    
-                    if (keyLower === 'id') width = '250px'
-                    else if (keyLower === 'name') width = '250px'
-                    else if (keyLower.includes('code')) width = '220px'
-                    else if (keyLower.includes('price')) width = '120px'
-                    else if (keyLower === 'barcode') width = '160px'
-                    else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
-                    
-                    return (
-                      <th 
-                        key={key} 
-                        className="px-3 py-3 border bg-gray-100 text-xs text-left font-medium"
-                        style={{ width, minWidth: width, maxWidth: width }}
-                      >
-                        {key}
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item, i) => (
-                  <tr key={i} className="hover:bg-gray-50" style={{ height: '56px' }}>
-                    {Object.entries(item).map(([key, value], j) => {
-                      // Определяем ширину колонки (такая же как в заголовке)
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            {/* Счетчик записей */}
+            <div className="mb-4 text-sm text-gray-600">
+              Показано {startItem}–{endItem} из {totalCount}
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
+                <thead>
+                  <tr style={{ height: '56px' }}>
+                    {Object.keys(data[0]).map(key => {
+                      // Определяем ширину колонки по названию
                       let width = '150px'
                       const keyLower = key.toLowerCase()
                       
@@ -181,75 +177,170 @@ export default function ProductTabs() {
                       else if (keyLower === 'barcode') width = '160px'
                       else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
                       
-                      // Проверяем если это поле с изображением
-                      const isImageField = keyLower.includes('image') || 
-                                         keyLower.includes('photo') || 
-                                         keyLower.includes('picture')
-                      
-                      // Проверяем если это поле со ссылкой
-                      const isLinkField = keyLower.includes('link') || keyLower.includes('url')
-                      
-                      if (isImageField && value) {
-                        return (
-                          <td 
-                            key={j} 
-                            className="px-3 py-3 border text-xs text-center align-middle"
-                            style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
-                          >
-                            <img 
-                              src={value}
-                              alt="Товар"
-                              className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
-                              onClick={() => window.open(value, '_blank')}
-                              onError={(e) => {
-                                e.target.style.display = 'none'
-                                e.target.parentNode.innerHTML = '<button class="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Открыть</button>'
-                                e.target.parentNode.onclick = () => window.open(value, '_blank')
-                              }}
-                            />
-                          </td>
-                        )
-                      }
-                      
-                      if (isLinkField && value) {
-                        return (
-                          <td 
-                            key={j} 
-                            className="px-3 py-3 border text-xs text-center align-middle"
-                            style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
-                          >
-                            <button 
-                              onClick={() => window.open(value, '_blank')}
-                              className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                            >
-                              Открыть
-                            </button>
-                          </td>
-                        )
-                      }
-                      
                       return (
-                        <td 
-                          key={j} 
-                          className="px-3 py-3 border text-xs align-middle overflow-hidden"
-                          style={{ 
-                            width, 
-                            minWidth: width, 
-                            maxWidth: width, 
-                            height: '56px',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                          title={String(value)}
+                        <th 
+                          key={key} 
+                          className="px-3 py-3 border bg-gray-100 text-xs text-left font-medium"
+                          style={{ width, minWidth: width, maxWidth: width }}
                         >
-                          {String(value)}
-                        </td>
+                          {key}
+                        </th>
                       )
                     })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.map((item, i) => (
+                    <tr key={i} className="hover:bg-gray-50" style={{ height: '56px' }}>
+                      {Object.entries(item).map(([key, value], j) => {
+                        // Определяем ширину колонки
+                        let width = '150px'
+                        const keyLower = key.toLowerCase()
+                        
+                        if (keyLower === 'id') width = '250px'
+                        else if (keyLower === 'name') width = '250px'
+                        else if (keyLower.includes('code')) width = '220px'
+                        else if (keyLower.includes('price')) width = '120px'
+                        else if (keyLower === 'barcode') width = '160px'
+                        else if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) width = '100px'
+                        
+                        // Проверяем поле с изображением
+                        const isImageField = keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
+                        
+                        // Проверяем поле со ссылкой
+                        const isLinkField = keyLower.includes('link') || keyLower.includes('url')
+                        
+                        if (isImageField && value) {
+                          return (
+                            <td 
+                              key={j} 
+                              className="px-3 py-3 border text-xs text-center align-middle"
+                              style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
+                            >
+                              <img 
+                                src={value}
+                                alt="Товар"
+                                className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
+                                onClick={() => window.open(value, '_blank')}
+                                onError={(e) => {
+                                  e.target.style.display = 'none'
+                                  e.target.parentNode.innerHTML = '<button class="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Открыть</button>'
+                                  e.target.parentNode.onclick = () => window.open(value, '_blank')
+                                }}
+                              />
+                            </td>
+                          )
+                        }
+                        
+                        if (isLinkField && value) {
+                          return (
+                            <td 
+                              key={j} 
+                              className="px-3 py-3 border text-xs text-center align-middle"
+                              style={{ width, minWidth: width, maxWidth: width, height: '56px' }}
+                            >
+                              <button 
+                                onClick={() => window.open(value, '_blank')}
+                                className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                              >
+                                Открыть
+                              </button>
+                            </td>
+                          )
+                        }
+                        
+                        return (
+                          <td 
+                            key={j} 
+                            className="px-3 py-3 border text-xs align-middle overflow-hidden"
+                            style={{ 
+                              width, 
+                              minWidth: width, 
+                              maxWidth: width, 
+                              height: '56px',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                            title={String(value)}
+                          >
+                            {String(value)}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Пагинация */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <button
+                  onClick={goToPrevPage}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 text-sm border rounded ${
+                    currentPage === 1 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  ←
+                </button>
+                
+                {/* Номера страниц */}
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => goToPage(pageNum)}
+                      className={`px-3 py-1 text-sm border rounded ${
+                        pageNum === currentPage
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+                
+                {totalPages > 5 && currentPage < totalPages - 2 && (
+                  <>
+                    <span className="px-2 text-gray-500">...</span>
+                    <button
+                      onClick={() => goToPage(totalPages)}
+                      className="px-3 py-1 text-sm border rounded bg-white text-gray-700 hover:bg-gray-50"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+                
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 text-sm border rounded ${
+                    currentPage === totalPages 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
