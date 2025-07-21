@@ -93,26 +93,31 @@ export default function ProductTabs() {
   useEffect(() => {
     if (!tabLoaded[activeTab]) {
       let isCurrent = true
-      
-      setLoading(true)
-      setError(null)
-      
-      loadData(activeTab)
-        .then(data => {
+
+      const fetchData = async () => {
+        setLoading(true)
+        setError(null)
+        
+        try {
+          const data = await loadData(activeTab)
           if (!isCurrent) return
+          
           setFullData(data)
           setTabLoaded(prev => ({ ...prev, [activeTab]: true }))
-        })
-        .catch(err => {
+        } catch (err) {
           if (!isCurrent) return
+          
           setError(err.message)
           setFullData([])
-        })
-        .finally(() => {
+        } finally {
           if (!isCurrent) return
+          
           setLoading(false)
-        })
-      
+        }
+      }
+
+      fetchData()
+
       return () => {
         isCurrent = false
       }
