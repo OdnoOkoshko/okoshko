@@ -18,6 +18,10 @@ export default function ProductTabs() {
     const saved = localStorage.getItem('hiddenColumns')
     return saved ? JSON.parse(saved) : []
   })
+  const [columnWidths, setColumnWidths] = useState(() => {
+    const saved = localStorage.getItem(`columnWidths_${activeTab}`)
+    return saved ? JSON.parse(saved) : {}
+  })
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -102,6 +106,21 @@ export default function ProductTabs() {
   useEffect(() => {
     localStorage.setItem('hiddenColumns', JSON.stringify(hiddenColumns))
   }, [hiddenColumns])
+
+  // Сохранение ширины колонок в localStorage
+  useEffect(() => {
+    localStorage.setItem(`columnWidths_${activeTab}`, JSON.stringify(columnWidths))
+  }, [columnWidths, activeTab])
+
+  // Загрузка ширины колонок при смене вкладки
+  useEffect(() => {
+    const saved = localStorage.getItem(`columnWidths_${activeTab}`)
+    if (saved) {
+      setColumnWidths(JSON.parse(saved))
+    } else {
+      setColumnWidths({})
+    }
+  }, [activeTab])
 
   // Закрытие меню при клике вне его
   useEffect(() => {
@@ -259,6 +278,9 @@ export default function ProductTabs() {
                 buttonRef={buttonRef}
                 toggleColumn={toggleColumn}
                 searchTerm={searchTerm}
+                columnWidths={columnWidths}
+                setColumnWidths={setColumnWidths}
+                activeTab={activeTab}
               />
             )}
             

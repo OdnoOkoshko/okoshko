@@ -3,8 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
-export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '' }) {
-
+export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '', columnWidths, setColumnWidths, activeTab }) {
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeColumn, setResizeColumn] = useState(null)
+  const [startX, setStartX] = useState(0)
+  const [startWidth, setStartWidth] = useState(0)
 
   if (!pageData.length) return null
 
@@ -14,10 +17,12 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
   // Фильтрация видимых колонок
   const visibleColumns = allColumns.filter(col => !hiddenColumns.includes(col))
 
-
-
-  // Определение ширины колонки по названию
+  // Определение ширины колонки с учетом сохраненных значений
   const getColumnWidth = (key) => {
+    if (columnWidths[key]) {
+      return `${columnWidths[key]}px`
+    }
+    
     const keyLower = key.toLowerCase()
     if (keyLower === 'id') return '250px'
     if (keyLower === 'name') return '250px'
@@ -27,6 +32,51 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
     if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) return '100px'
     return '150px'
   }
+
+  // Начало изменения ширины
+  const handleMouseDown = (e, columnKey) => {
+    e.preventDefault()
+    setIsResizing(true)
+    setResizeColumn(columnKey)
+    setStartX(e.clientX)
+    setStartWidth(parseInt(getColumnWidth(columnKey)))
+    document.body.style.cursor = 'col-resize'
+  }
+
+  // Процесс изменения ширины
+  const handleMouseMove = (e) => {
+    if (!isResizing || !resizeColumn) return
+    
+    const diff = e.clientX - startX
+    const newWidth = Math.max(50, startWidth + diff) // Минимальная ширина 50px
+    
+    setColumnWidths(prev => ({
+      ...prev,
+      [resizeColumn]: newWidth
+    }))
+  }
+
+  // Завершение изменения ширины
+  const handleMouseUp = () => {
+    if (isResizing) {
+      setIsResizing(false)
+      setResizeColumn(null)
+      document.body.style.cursor = 'default'
+    }
+  }
+
+  // Эффекты для обработки событий мыши
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing, startX, startWidth, resizeColumn])
 
   // Проверка типа поля
   const isImageField = (key) => {
@@ -91,6 +141,14 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
               </label>
             ))}
           </div>
+          <div className="border-t border-gray-200 mt-2 pt-2">
+            <button
+              onClick={() => setColumnWidths({})}
+              className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 w-full"
+            >
+              Сбросить ширину
+            </button>
+          </div>
         </div>
       )}
 
@@ -103,10 +161,16 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                 return (
                   <th 
                     key={key} 
-                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium"
+                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative"
                     style={cellStyles(width)}
                   >
                     {key}
+                    {/* Ручка для изменения ширины */}
+                    <div
+                      className="absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-blue-300 bg-transparent"
+                      onMouseDown={(e) => handleMouseDown(e, key)}
+                      title="Перетащите для изменения ширины"
+                    />
                   </th>
                 )
               })}
