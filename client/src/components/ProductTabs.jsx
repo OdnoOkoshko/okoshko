@@ -48,17 +48,31 @@ export default function ProductTabs() {
   }
 
   // Проверяем наличие ключей
-  const hasValidKeys = import.meta.env.VITE_SUPABASE_URL && 
-                      import.meta.env.VITE_SUPABASE_ANON_KEY &&
-                      import.meta.env.VITE_SUPABASE_URL !== 'https://stlffgzpqgzishvqhwad.supabase.co'
+  const currentUrl = import.meta.env.VITE_SUPABASE_URL
+  const currentKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  
+  // Подробная диагностика
+  console.log('=== ДИАГНОСТИКА ПЕРЕМЕННЫХ ===')
+  console.log('URL:', currentUrl)
+  console.log('Key существует:', !!currentKey)
+  console.log('Key длина:', currentKey?.length)
+  console.log('Старый URL?:', currentUrl === 'https://stlffgzpqgzishvqhwad.supabase.co')
+  
+  const hasValidKeys = currentUrl && currentKey && 
+                      currentUrl !== 'https://stlffgzpqgzishvqhwad.supabase.co'
+
+  console.log('Ключи валидны:', hasValidKeys)
 
   // Загрузка данных при изменении активной вкладки
   useEffect(() => {
     if (hasValidKeys) {
+      console.log('Загружаем данные для:', activeTab)
       loadData(activeTab)
     } else {
-      setError('Ключи Supabase отсутствуют или неправильные')
+      console.log('Ключи невалидны, показываем ошибку')
+      setError(`Ключи Supabase отсутствуют или неправильные. URL: ${currentUrl || 'отсутствует'}`)
       setData([])
+      setLoading(false)
     }
   }, [activeTab, hasValidKeys])
 
