@@ -148,11 +148,6 @@ export default function ProductTabs() {
         title="Клик - сортировка, двойной клик - переименовать"
       >
         <span>{headerText}</span>
-        {column.isSorted() && (
-          <span className="ml-1 text-blue-500">
-            {column.isSortAscending() ? '↑' : '↓'}
-          </span>
-        )}
       </div>
     )
   }
