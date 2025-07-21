@@ -85,7 +85,9 @@ export default function ProductTabs() {
   }
 
   // Эффекты
-  useEffect(() => loadData(activeTab), [activeTab])
+  useEffect(() => {
+    loadData(activeTab)
+  }, [activeTab])
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
 
   // Фильтрация и пагинация
