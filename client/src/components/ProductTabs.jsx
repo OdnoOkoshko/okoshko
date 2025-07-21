@@ -210,12 +210,12 @@ export default function ProductTabs() {
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
             {/* Компактная панель управления */}
-            <div className="flex items-center justify-between mb-4 py-2">
+            <div className="flex items-center justify-between mb-3">
               {/* Левая часть - поиск */}
               <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
               
               {/* Центральная часть - счетчик записей */}
-              <div className="text-sm text-gray-600 flex-1 text-center">
+              <div className="text-sm text-gray-600 flex-1 text-center px-4">
                 {searchTerm ? (
                   <>Найдено {filteredData.length} из {fullData.length} • Показано {startItem}–{endItem}</>
                 ) : (
@@ -224,14 +224,16 @@ export default function ProductTabs() {
               </div>
               
               {/* Правая часть - кнопка управления столбцами */}
-              <button
-                ref={buttonRef}
-                onClick={() => setShowColumnMenu(!showColumnMenu)}
-                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors cursor-pointer"
-                title="Управление столбцами"
-              >
-                <FiSettings size={20} />
-              </button>
+              <div className="relative">
+                <button
+                  ref={buttonRef}
+                  onClick={() => setShowColumnMenu(!showColumnMenu)}
+                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  title="Управление столбцами"
+                >
+                  <FiSettings size={18} />
+                </button>
+              </div>
             </div>
             
             <ProductTable 

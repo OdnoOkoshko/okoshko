@@ -44,7 +44,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
     width,
     minWidth: width,
     maxWidth: width,
-    height: '56px'
+    height: '48px'
   })
 
   const textCellStyles = (width) => ({
@@ -59,19 +59,35 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
       {showColumnMenu && (
         <div
           ref={menuRef}
-          className="absolute right-0 top-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-[200px]"
+          className="absolute right-0 top-12 z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-[220px]"
         >
-          <div className="text-sm font-medium text-gray-700 mb-2">Видимые столбцы:</div>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-700">Видимые столбцы:</div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setHiddenColumns([])}
+                className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Все
+              </button>
+              <button
+                onClick={() => setHiddenColumns([...allColumns])}
+                className="text-xs px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Скрыть
+              </button>
+            </div>
+          </div>
+          <div className="space-y-1 max-h-60 overflow-y-auto">
             {allColumns.map(column => (
-              <label key={column} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+              <label key={column} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded text-sm">
                 <input
                   type="checkbox"
                   checked={!hiddenColumns.includes(column)}
                   onChange={() => toggleColumn(column)}
                   className="text-blue-600"
                 />
-                <span className="text-sm text-gray-700">{column}</span>
+                <span className="text-gray-700">{column}</span>
               </label>
             ))}
           </div>
@@ -81,13 +97,13 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
       <div className="overflow-x-auto">
         <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
           <thead>
-            <tr style={{ height: '56px' }}>
+            <tr style={{ height: '48px' }}>
               {visibleColumns.map(key => {
                 const width = getColumnWidth(key)
                 return (
                   <th 
                     key={key} 
-                    className="px-3 py-3 border bg-gray-100 text-xs text-left font-medium"
+                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium"
                     style={cellStyles(width)}
                   >
                     {key}
@@ -98,7 +114,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
           </thead>
           <tbody>
             {pageData.map((item, i) => (
-              <tr key={i} className="hover:bg-gray-50" style={{ height: '56px' }}>
+              <tr key={i} className="hover:bg-blue-50 transition-colors duration-150" style={{ height: '48px' }}>
                 {visibleColumns.map((key, j) => {
                   const value = item[key]
                   const width = getColumnWidth(key)
@@ -107,13 +123,13 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-3 border text-xs text-center align-middle"
+                        className="px-3 py-2 border text-xs text-center align-middle"
                         style={cellStyles(width)}
                       >
                         <img 
                           src={value}
                           alt="Товар"
-                          className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
+                          className="w-10 h-10 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
                           onClick={() => window.open(value, '_blank')}
                           onError={(e) => {
                             e.target.style.display = 'none'
@@ -129,7 +145,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-3 border text-xs text-center align-middle"
+                        className="px-3 py-2 border text-xs text-center align-middle"
                         style={cellStyles(width)}
                       >
                         <button 
@@ -145,7 +161,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                   return (
                     <td 
                       key={j} 
-                      className="px-3 py-3 border text-xs align-middle overflow-hidden"
+                      className="px-3 py-2 border text-xs align-middle overflow-hidden"
                       style={textCellStyles(width)}
                       title={String(value)}
                     >
