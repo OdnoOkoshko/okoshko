@@ -36,22 +36,36 @@ export default function ProductTabs() {
     try {
       const tableName = tableMapping[tab]
       
-      // Сначала получаем общее количество записей
-      const { count } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact', head: true })
+      // Загружаем все данные порциями по 1000, чтобы обойти лимит Supabase
+      let allData = []
+      let from = 0
+      const chunkSize = 1000
       
-      // Загружаем все данные (убираем лимит 1000)
-      const { data: tableData, error: tableError } = await supabase
-        .from(tableName)
-        .select('*')
-        .range(0, count - 1)
-      
-      if (tableError) {
-        throw new Error(`${tableName}: ${tableError.message}`)
+      while (true) {
+        const { data: chunk, error: chunkError } = await supabase
+          .from(tableName)
+          .select('*')
+          .range(from, from + chunkSize - 1)
+        
+        if (chunkError) {
+          throw new Error(`${tableName}: ${chunkError.message}`)
+        }
+        
+        if (!chunk || chunk.length === 0) {
+          break
+        }
+        
+        allData = [...allData, ...chunk]
+        
+        // Если получили меньше чем chunkSize, значит это последняя порция
+        if (chunk.length < chunkSize) {
+          break
+        }
+        
+        from += chunkSize
       }
       
-      setData(tableData || [])
+      setData(allData)
     } catch (err) {
       setError(err.message)
       setData([])
