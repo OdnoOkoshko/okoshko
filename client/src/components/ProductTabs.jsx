@@ -17,10 +17,10 @@ export default function ProductTabs() {
 
 
   const tabs = [
-    { id: 'moysklad', name: 'МойСклад' },
-    { id: 'ozon', name: 'Ozon' },
-    { id: 'wb', name: 'WB' },
-    { id: 'yandex', name: 'Яндекс' }
+    { id: 'moysklad', name: 'Мой Склад' },
+    { id: 'ozon', name: 'Озон' },
+    { id: 'wb', name: 'Вайлдбериз' },
+    { id: 'yandex', name: 'Яндекс Маркет' }
   ]
 
   const tableMapping = {
@@ -347,19 +347,30 @@ export default function ProductTabs() {
       <div className="mb-6 space-y-4">
         {/* Вкладки */}
         <div className="flex justify-center gap-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.id 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {tab.name}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const getTabStyles = (tabId) => {
+              const baseClasses = 'px-4 py-2 rounded-md text-sm font-medium transition-opacity'
+              const gradients = {
+                moysklad: 'bg-gradient-to-r from-[#00B2FF] to-[#009EE3] text-white',
+                ozon: 'bg-gradient-to-r from-[#005BFF] to-[#338EFF] text-white',
+                wb: 'bg-gradient-to-r from-[#A72974] to-[#D91A94] text-white',
+                yandex: 'bg-gradient-to-r from-[#FFCC00] to-[#FF9900] text-black'
+              }
+              
+              const opacity = activeTab === tabId ? 'opacity-100' : 'opacity-80 hover:opacity-100'
+              return `${baseClasses} ${gradients[tabId]} ${opacity}`
+            }
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={getTabStyles(tab.id)}
+              >
+                {tab.name}
+              </button>
+            )
+          })}
         </div>
       </div>
 
