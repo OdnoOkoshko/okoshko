@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { FiSettings, FiRefreshCw } from 'react-icons/fi'
+import { FiSettings, FiRotateCcw } from 'react-icons/fi'
 import SearchBar from './SearchBar'
 import ProductTable from './ProductTable'
 import PaginationControls from './PaginationControls'
@@ -310,7 +310,7 @@ export default function ProductTabs() {
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                   title="Сбросить настройки таблицы"
                 >
-                  <FiRefreshCw size={18} />
+                  <FiRotateCcw size={18} />
                 </button>
                 <div className="relative">
                   <button
