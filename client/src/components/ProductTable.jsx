@@ -146,8 +146,8 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                 return (
                   <th 
                     key={key} 
-                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors"
-                    style={{ width, minWidth: width, maxWidth: width, height: '48px' }}
+                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
+                    style={{ width }}
                     onClick={() => onSort(key)}
                     title="Нажмите для сортировки"
                   >
@@ -186,8 +186,8 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-2 border text-xs text-center align-middle"
-                        style={{ width, minWidth: width, maxWidth: width, height: '48px' }}
+                        className="px-3 py-2 border text-xs text-center align-middle h-12"
+                        style={{ width }}
                       >
                         {isImageBroken ? (
                           <button 
@@ -213,8 +213,8 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-2 border text-xs text-center align-middle"
-                        style={{ width, minWidth: width, maxWidth: width, height: '48px' }}
+                        className="px-3 py-2 border text-xs text-center align-middle h-12"
+                        style={{ width }}
                       >
                         <button 
                           onClick={() => window.open(value, '_blank', 'noopener,noreferrer')}
@@ -229,8 +229,8 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                   return (
                     <td 
                       key={j} 
-                      className="px-3 py-2 border text-xs align-middle overflow-hidden"
-                      style={{ width, minWidth: width, maxWidth: width, height: '48px', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      className="px-3 py-2 border text-xs align-middle h-12 overflow-hidden whitespace-nowrap text-ellipsis"
+                      style={{ width }}
                       title={String(value)}
                     >
                       {String(value)}
