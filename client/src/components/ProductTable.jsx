@@ -1,6 +1,6 @@
 // ProductTable.jsx - компонент таблицы товаров
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
 export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '', columnWidths, setColumnWidths, activeTab, sortConfig, onSort }) {
@@ -8,17 +8,22 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
   const [resizeColumn, setResizeColumn] = useState(null)
   const [startX, setStartX] = useState(0)
   const [startWidth, setStartWidth] = useState(0)
+  const [brokenImages, setBrokenImages] = useState(new Set())
 
   if (!pageData.length) return null
 
-  // Получение всех колонок
-  const allColumns = Object.keys(fullData[0] || pageData[0] || {})
+  // Получение всех колонок - мемоизация для производительности
+  const allColumns = useMemo(() => {
+    return Object.keys(fullData[0] || pageData[0] || {})
+  }, [fullData, pageData])
   
-  // Фильтрация видимых колонок
-  const visibleColumns = allColumns.filter(col => !hiddenColumns.includes(col))
+  // Фильтрация видимых колонок - мемоизация для производительности  
+  const visibleColumns = useMemo(() => {
+    return allColumns.filter(col => !hiddenColumns.includes(col))
+  }, [allColumns, hiddenColumns])
 
-  // Определение ширины колонки с учетом сохраненных значений
-  const getColumnWidth = (key) => {
+  // Определение ширины колонки с учетом сохраненных значений - мемоизация для производительности
+  const getColumnWidth = useCallback((key) => {
     if (columnWidths[key]) {
       return `${columnWidths[key]}px`
     }
@@ -31,20 +36,20 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
     if (keyLower === 'barcode') return '160px'
     if (keyLower.includes('image') || keyLower.includes('link') || keyLower.includes('url')) return '100px'
     return '150px'
-  }
+  }, [columnWidths])
 
-  // Начало изменения ширины
-  const handleMouseDown = (e, columnKey) => {
+  // Начало изменения ширины - мемоизация для производительности
+  const handleMouseDown = useCallback((e, columnKey) => {
     e.preventDefault()
     setIsResizing(true)
     setResizeColumn(columnKey)
     setStartX(e.clientX)
     setStartWidth(parseInt(getColumnWidth(columnKey)))
     document.body.style.cursor = 'col-resize'
-  }
+  }, [getColumnWidth])
 
-  // Процесс изменения ширины
-  const handleMouseMove = (e) => {
+  // Процесс изменения ширины - мемоизация для производительности
+  const handleMouseMove = useCallback((e) => {
     if (!isResizing || !resizeColumn) return
     
     const diff = e.clientX - startX
@@ -54,16 +59,16 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
       ...prev,
       [resizeColumn]: newWidth
     }))
-  }
+  }, [isResizing, resizeColumn, startX, startWidth, setColumnWidths])
 
-  // Завершение изменения ширины
-  const handleMouseUp = () => {
+  // Завершение изменения ширины - мемоизация для производительности
+  const handleMouseUp = useCallback(() => {
     if (isResizing) {
       setIsResizing(false)
       setResizeColumn(null)
       document.body.style.cursor = 'default'
     }
-  }
+  }, [isResizing])
 
   // Эффекты для обработки событий мыши
   useEffect(() => {
@@ -78,16 +83,21 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
     }
   }, [isResizing, startX, startWidth, resizeColumn])
 
-  // Проверка типа поля
-  const isImageField = (key) => {
+  // Проверка типа поля - мемоизация для производительности
+  const isImageField = useCallback((key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
-  }
+  }, [])
 
-  const isLinkField = (key) => {
+  const isLinkField = useCallback((key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('link') || keyLower.includes('url')
-  }
+  }, [])
+
+  // Обработка ошибки изображения - безопасный подход без прямой манипуляции DOM
+  const handleImageError = useCallback((imageUrl) => {
+    setBrokenImages(prev => new Set([...prev, imageUrl]))
+  }, [])
 
   // Стили ячейки
   const cellStyles = (width) => ({
@@ -176,23 +186,25 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                   const width = getColumnWidth(key)
                   
                   if (isImageField(key) && value) {
+                    const isImageBroken = brokenImages.has(value)
+                    
                     return (
                       <td 
                         key={j} 
                         className="px-3 py-2 border text-xs text-center align-middle"
                         style={cellStyles(width)}
                       >
-                        <img 
-                          src={value}
-                          alt="Товар"
-                          className="w-10 h-10 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
-                          onClick={() => window.open(value, '_blank')}
-                          onError={(e) => {
-                            e.target.style.display = 'none'
-                            e.target.parentNode.innerHTML = '<button class="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Открыть</button>'
-                            e.target.parentNode.onclick = () => window.open(value, '_blank')
-                          }}
-                        />
+                        {isImageBroken ? (
+                          <span className="text-gray-500">—</span>
+                        ) : (
+                          <img 
+                            src={value}
+                            alt="Товар"
+                            className="w-10 h-10 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
+                            onClick={() => window.open(value, '_blank', 'noopener,noreferrer')}
+                            onError={() => handleImageError(value)}
+                          />
+                        )}
                       </td>
                     )
                   }
@@ -205,7 +217,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                         style={cellStyles(width)}
                       >
                         <button 
-                          onClick={() => window.open(value, '_blank')}
+                          onClick={() => window.open(value, '_blank', 'noopener,noreferrer')}
                           className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                         >
                           Открыть
