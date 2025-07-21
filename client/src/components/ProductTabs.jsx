@@ -345,28 +345,26 @@ export default function ProductTabs() {
   return (
     <div className="max-w-full overflow-auto">
       <div className="mb-6 space-y-4">
-        {/* Вкладки и управление */}
-        <div className="bg-gray-50 p-2 rounded-lg">
-          <nav className="flex space-x-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-md font-medium text-sm transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-blue-500 text-white shadow-md transform scale-105'
-                    : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 shadow-sm'
-                }`}
-              >
-                {tab.name}
-              </button>
-            ))}
-          </nav>
+        {/* Вкладки */}
+        <div className="flex justify-center gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === tab.id 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {tab.name}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Содержимое */}
-      <div className="space-y-4">
+      <div className="mt-4 space-y-4">
         {loading && (
           <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="text-center">
