@@ -136,6 +136,31 @@ export default function ProductTabs() {
     )
   }
 
+  // Компонент для отображения изображений
+  const ImageCellRenderer = ({ value }) => {
+    if (!value) return ''
+    
+    const handleClick = () => {
+      window.open(value, '_blank')
+    }
+
+    return (
+      <div className="flex items-center justify-center">
+        <img 
+          src={value}
+          alt="Товар"
+          className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleClick}
+          onError={(e) => {
+            e.target.style.display = 'none'
+            e.target.parentNode.innerHTML = '<button class="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">Открыть</button>'
+            e.target.parentNode.onclick = handleClick
+          }}
+        />
+      </div>
+    )
+  }
+
   // Компонент для отображения ссылок
   const LinkCellRenderer = ({ value }) => {
     if (!value) return ''
@@ -159,13 +184,18 @@ export default function ProductTabs() {
     if (!value) return ''
     
     const displayValue = String(value)
-    const isLong = displayValue.length > 30
+    const isLong = displayValue.length > 40
     
     return (
       <div 
-        className="truncate" 
+        className="truncate px-2 py-1" 
         title={isLong ? displayValue : ''}
-        style={{ maxWidth: '100%' }}
+        style={{ 
+          maxWidth: '100%',
+          textOverflow: 'ellipsis',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap'
+        }}
       >
         {displayValue}
       </div>
@@ -180,7 +210,25 @@ export default function ProductTabs() {
     const tableName = tableMapping[activeTab]
 
     return columns.map(field => {
+      const isImageField = field.toLowerCase().includes('image') || field.toLowerCase().includes('photo') || field.toLowerCase().includes('picture')
       const isLinkField = field.toLowerCase().includes('link') || field.toLowerCase().includes('url')
+      
+      let cellRenderer = DefaultCellRenderer
+      let minWidth = 120
+      let maxWidth = undefined
+      let flex = 1
+      
+      if (isImageField) {
+        cellRenderer = ImageCellRenderer
+        minWidth = 80
+        maxWidth = 100
+        flex = 0
+      } else if (isLinkField) {
+        cellRenderer = LinkCellRenderer
+        minWidth = 100
+        maxWidth = 150
+        flex = 0
+      }
       
       return {
         field,
@@ -195,11 +243,13 @@ export default function ProductTabs() {
             tableName={tableName} 
           />
         ),
-        cellRenderer: isLinkField ? LinkCellRenderer : DefaultCellRenderer,
-        minWidth: isLinkField ? 100 : 120,
-        maxWidth: isLinkField ? 150 : undefined,
-        flex: isLinkField ? 0 : 1,
+        cellRenderer,
+        minWidth,
+        maxWidth,
+        flex,
         cellStyle: {
+          display: 'flex',
+          alignItems: 'center',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap'
@@ -216,22 +266,22 @@ export default function ProductTabs() {
   }), [])
 
   return (
-    <div className="w-full">
+    <div className="max-w-full overflow-auto">
       {/* Заголовок */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Okoshko - Единое окно заказов</h1>
+      <div className="mb-6 space-y-4">
+        <h1 className="text-3xl font-bold text-gray-900">Okoshko - Единое окно заказов</h1>
         
         {/* Вкладки */}
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-1">
+        <div className="bg-gray-50 p-2 rounded-lg">
+          <nav className="flex space-x-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-t-lg font-medium text-sm transition-colors ${
+                className={`px-6 py-3 rounded-md font-medium text-sm transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-blue-500 text-white border-b-2 border-blue-500'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+                    ? 'bg-blue-500 text-white shadow-md transform scale-105'
+                    : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 shadow-sm'
                 }`}
               >
                 {tab.name}
@@ -242,28 +292,40 @@ export default function ProductTabs() {
       </div>
 
       {/* Содержимое */}
-      <div>
+      <div className="space-y-4">
         {loading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <div className="text-gray-500 mt-2">Загрузка данных...</div>
+          <div className="bg-white p-8 rounded-lg shadow-md">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+              <div className="text-gray-600 mt-4 font-medium">Загрузка данных...</div>
+            </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            <strong>Ошибка:</strong> {error}
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-md shadow-sm">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <span className="text-red-500 font-bold">⚠</span>
+              </div>
+              <div className="ml-3">
+                <strong>Ошибка:</strong> {error}
+              </div>
+            </div>
           </div>
         )}
 
         {!loading && !error && data.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            Нет данных для отображения
+          <div className="bg-white p-8 rounded-lg shadow-md">
+            <div className="text-center text-gray-500">
+              <div className="text-4xl mb-4">📋</div>
+              <div className="text-lg font-medium">Нет данных для отображения</div>
+            </div>
           </div>
         )}
 
         {!loading && !error && data.length > 0 && (
-          <div className="ag-theme-alpine w-full mb-6" style={{ height: '600px' }}>
+          <div className="ag-theme-alpine p-4 bg-white shadow-md rounded-md" style={{ height: '650px' }}>
             <AgGridReact
               rowData={data}
               columnDefs={columnDefs}
@@ -271,15 +333,27 @@ export default function ProductTabs() {
               suppressHorizontalScroll={false}
               suppressColumnVirtualisation={false}
               animateRows={true}
-              rowSelection={{ mode: 'multiRow' }}
+              rowSelection={{ 
+                mode: 'multiRow',
+                checkboxes: true,
+                headerCheckbox: true
+              }}
               pagination={true}
               paginationPageSize={100}
               paginationPageSizeSelector={[50, 100, 200, 500]}
               onGridReady={(params) => {
-                // Автоматический размер колонок при загрузке
                 setTimeout(() => {
                   params.api.sizeColumnsToFit()
                 }, 100)
+              }}
+              rowClassRules={{
+                'ag-row-selected': (params) => params.node.selected,
+              }}
+              getRowStyle={(params) => {
+                if (params.node.selected) {
+                  return { backgroundColor: '#f0f9ff' }
+                }
+                return null
               }}
             />
           </div>
