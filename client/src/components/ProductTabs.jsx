@@ -190,25 +190,19 @@ export default function ProductTabs() {
         )}
 
         {!loading && !error && data.length > 0 && (
-          <div>
-            <div className="mb-4 text-sm text-gray-600">
-              Всего товаров: {data.length} | Дважды кликните на заголовок для переименования
-            </div>
-            
-            <div className="ag-theme-alpine w-full" style={{ height: '600px' }}>
-              <AgGridReact
-                rowData={data}
-                columnDefs={columnDefs}
-                defaultColDef={defaultColDef}
-                suppressHorizontalScroll={false}
-                suppressColumnVirtualisation={false}
-                animateRows={true}
-                rowSelection={{ mode: 'multiRow' }}
-                pagination={true}
-                paginationPageSize={100}
-                paginationPageSizeSelector={[50, 100, 200, 500]}
-              />
-            </div>
+          <div className="ag-theme-alpine w-full" style={{ height: '600px' }}>
+            <AgGridReact
+              rowData={data}
+              columnDefs={columnDefs}
+              defaultColDef={defaultColDef}
+              suppressHorizontalScroll={false}
+              suppressColumnVirtualisation={false}
+              animateRows={true}
+              rowSelection={{ mode: 'multiRow' }}
+              pagination={true}
+              paginationPageSize={100}
+              paginationPageSizeSelector={[50, 100, 200, 500]}
+            />
           </div>
         )}
       </div>
