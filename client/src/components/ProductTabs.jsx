@@ -22,10 +22,7 @@ export default function ProductTabs() {
     const saved = localStorage.getItem(`columnWidths_${activeTab}`)
     return saved ? JSON.parse(saved) : {}
   })
-  const [sortConfig, setSortConfig] = useState(() => {
-    const saved = localStorage.getItem(`sortState_${activeTab}`)
-    return saved ? JSON.parse(saved) : { column: null, direction: null }
-  })
+  const [sortConfig, setSortConfig] = useState({ column: null, direction: null })
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -116,26 +113,18 @@ export default function ProductTabs() {
     localStorage.setItem(`columnWidths_${activeTab}`, JSON.stringify(columnWidths))
   }, [columnWidths, activeTab])
 
-  // Загрузка ширины колонок при смене вкладки
+  // Загрузка ширины колонок и сортировки при смене вкладки
   useEffect(() => {
-    const saved = localStorage.getItem(`columnWidths_${activeTab}`)
-    if (saved) {
-      setColumnWidths(JSON.parse(saved))
+    const savedWidths = localStorage.getItem(`columnWidths_${activeTab}`)
+    if (savedWidths) {
+      setColumnWidths(JSON.parse(savedWidths))
     } else {
       setColumnWidths({})
     }
-  }, [activeTab])
 
-  // Сохранение состояния сортировки в localStorage
-  useEffect(() => {
-    localStorage.setItem(`sortState_${activeTab}`, JSON.stringify(sortConfig))
-  }, [sortConfig, activeTab])
-
-  // Загрузка состояния сортировки при смене вкладки
-  useEffect(() => {
-    const saved = localStorage.getItem(`sortState_${activeTab}`)
-    if (saved) {
-      setSortConfig(JSON.parse(saved))
+    const savedSort = localStorage.getItem(`sortState_${activeTab}`)
+    if (savedSort) {
+      setSortConfig(JSON.parse(savedSort))
     } else {
       setSortConfig({ column: null, direction: null })
     }
@@ -251,10 +240,14 @@ export default function ProductTabs() {
       }
     }
     
-    setSortConfig({ 
+    const newSortConfig = { 
       column: newDirection ? columnKey : null, 
       direction: newDirection 
-    })
+    }
+    
+    setSortConfig(newSortConfig)
+    // Сохраняем сразу при изменении пользователем
+    localStorage.setItem(`sortState_${activeTab}`, JSON.stringify(newSortConfig))
   }
 
   return (
