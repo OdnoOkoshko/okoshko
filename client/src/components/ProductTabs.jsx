@@ -60,9 +60,6 @@ export default function ProductTabs() {
 
   // Загрузка всех данных из Supabase
   const loadData = async (tab) => {
-    setLoading(true)
-    setError(null)
-    
     try {
       const tableName = tableMapping[tab]
       let allData = []
@@ -86,20 +83,39 @@ export default function ProductTabs() {
         from += chunkSize
       }
       
-      setFullData(allData)
+      return allData
     } catch (err) {
-      setError(err.message)
-      setFullData([])
-    } finally {
-      setLoading(false)
+      throw err
     }
   }
 
   // Загрузка данных для вкладки при первом открытии
   useEffect(() => {
     if (!tabLoaded[activeTab]) {
+      let isCurrent = true
+      
+      setLoading(true)
+      setError(null)
+      
       loadData(activeTab)
-      setTabLoaded(prev => ({ ...prev, [activeTab]: true }))
+        .then(data => {
+          if (!isCurrent) return
+          setFullData(data)
+          setTabLoaded(prev => ({ ...prev, [activeTab]: true }))
+        })
+        .catch(err => {
+          if (!isCurrent) return
+          setError(err.message)
+          setFullData([])
+        })
+        .finally(() => {
+          if (!isCurrent) return
+          setLoading(false)
+        })
+      
+      return () => {
+        isCurrent = false
+      }
     }
   }, [activeTab])
   
