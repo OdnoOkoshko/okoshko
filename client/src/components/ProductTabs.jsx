@@ -1,6 +1,6 @@
 // ProductTabs.jsx - вкладки товаров с таблицами данных для каждого маркетплейса
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
 export default function ProductTabs() {
@@ -9,6 +9,7 @@ export default function ProductTabs() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
   const itemsPerPage = 100
 
   // Маппинг вкладок на таблицы в БД
@@ -75,12 +76,28 @@ export default function ProductTabs() {
     setCurrentPage(1)
   }, [activeTab])
   
+  // Сброс страницы при изменении поиска
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
+  
+  // Фильтрация данных по поисковому запросу
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return fullData
+    const lower = searchTerm.toLowerCase()
+    return fullData.filter(item =>
+      Object.values(item).some(val =>
+        String(val).toLowerCase().includes(lower)
+      )
+    )
+  }, [searchTerm, fullData])
+  
   // Функции пагинации и фильтрации данных
-  const totalCount = fullData.length
+  const totalCount = filteredData.length
   const totalPages = Math.ceil(totalCount / itemsPerPage)
   const start = (currentPage - 1) * itemsPerPage
   const end = currentPage * itemsPerPage
-  const pageData = fullData.slice(start, end)
+  const pageData = filteredData.slice(start, end)
   const startItem = start + 1
   const endItem = Math.min(end, totalCount)
   
@@ -174,16 +191,31 @@ export default function ProductTabs() {
 
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
+            {/* Поле поиска */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Поиск..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border border-gray-300 px-3 py-2 rounded w-full max-w-md text-sm"
+              />
+            </div>
+            
             {/* Счетчик записей */}
             <div className="mb-4 text-sm text-gray-600">
-              Показано {startItem}–{endItem} из {totalCount}
+              {searchTerm ? (
+                <>Найдено {filteredData.length} из {fullData.length} • Показано {startItem}–{endItem}</>
+              ) : (
+                <>Показано {startItem}–{endItem} из {totalCount}</>
+              )}
             </div>
             
             <div className="overflow-x-auto">
               <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
                 <thead>
                   <tr style={{ height: '56px' }}>
-                    {Object.keys(fullData[0]).map(key => {
+                    {Object.keys(filteredData[0] || fullData[0] || {}).map(key => {
                       // Определяем ширину колонки по названию
                       let width = '150px'
                       const keyLower = key.toLowerCase()
