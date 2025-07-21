@@ -64,24 +64,28 @@ export default function ProductTabs() {
     let from = 0
     const chunkSize = 1000
     
-    while (true) {
-      const { data: chunk, error: chunkError } = await supabase
-        .from(tableName)
-        .select('*')
-        .range(from, from + chunkSize - 1)
-      
-      if (chunkError) {
-        throw new Error('Ошибка при загрузке данных')
+    try {
+      while (true) {
+        const { data: chunk, error: chunkError } = await supabase
+          .from(tableName)
+          .select('*')
+          .range(from, from + chunkSize - 1)
+        
+        if (chunkError) {
+          throw new Error('Ошибка при загрузке данных')
+        }
+        
+        if (!chunk || chunk.length === 0) break
+        
+        allData = [...allData, ...chunk]
+        if (chunk.length < chunkSize) break
+        from += chunkSize
       }
       
-      if (!chunk || chunk.length === 0) break
-      
-      allData = [...allData, ...chunk]
-      if (chunk.length < chunkSize) break
-      from += chunkSize
+      return allData
+    } catch (error) {
+      throw new Error('Ошибка при загрузке данных')
     }
-    
-    return allData
   }
 
   // Загрузка данных для вкладки при первом открытии
