@@ -468,8 +468,7 @@ export default function ProductTabs() {
                 return null
               }}
               multiSortKey="ctrl"
-              suppressLoadingOverlay={true}
-              suppressPropertyNamesCheck={true}
+              loading={false}
             />
           </div>
         )}
