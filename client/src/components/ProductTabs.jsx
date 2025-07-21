@@ -305,17 +305,12 @@ export default function ProductTabs() {
     resizable: true
   }), [])
 
-  // Русская локализация для AG Grid
+  // Русская локализация с правильным ключом для Page Size
   const localeText = useMemo(() => ({
     // Фильтры
     filterOoo: 'Фильтр...',
     equals: 'Равно',
-    notEqual: 'Не равно',
-    lessThan: 'Меньше чем',
-    greaterThan: 'Больше чем',
-    lessThanOrEqual: 'Меньше или равно',
-    greaterThanOrEqual: 'Больше или равно',
-    inRange: 'В диапазоне',
+    notEqual: 'Не равно', 
     contains: 'Содержит',
     notContains: 'Не содержит',
     startsWith: 'Начинается с',
@@ -323,91 +318,28 @@ export default function ProductTabs() {
     blank: 'Пустое',
     notBlank: 'Не пустое',
     
-    // Пагинация
+    // Пагинация - правильные ключи
     page: 'Страница',
-    more: 'Ещё',
     to: 'до',
     of: 'из',
     next: 'Следующая',
-    last: 'Последняя',
+    last: 'Последняя', 
     first: 'Первая',
     previous: 'Предыдущая',
     loadingOoo: 'Загрузка...',
+    noRowsToShow: 'Нет данных для отображения',
     
-    // Меню колонок
-    columns: 'Колонки',
-    filters: 'Фильтры',
-    rowGroupColumns: 'Группировка',
-    rowGroupColumnsEmptyMessage: 'Перетащите сюда для группировки',
-    valueColumns: 'Значения',
-    pivotMode: 'Режим сводной таблицы',
-    groups: 'Группы',
-    values: 'Значения',
-    pivots: 'Развороты',
-    valueColumnsEmptyMessage: 'Перетащите сюда для агрегации',
-    pivotColumnsEmptyMessage: 'Перетащите сюда для разворота',
-    
-    // Размер страницы
-    pageSize: 'Размер страницы:',
-    pageSizeSelector: 'Размер страницы',
-    
-    // Дополнительные ключи для пагинации
-    'Page Size': 'Размер страницы',
-    'Page Size:': 'Размер страницы:',
-    paginationPageSize: 'Размер страницы',
-    paginationPageSizeSelector: 'Размер страницы',
-    
-    // Все возможные ключи пагинации
+    // ГЛАВНОЕ - правильный ключ для размера страницы!
     ariaPageSizeSelector: 'Размер страницы',
     ariaPageSizeSelectorLabel: 'Размер страницы',
-    paginationOf: 'из',
-    paginationTo: 'до',
-    paginationPage: 'Страница',
-    paginationNextPage: 'Следующая страница',
-    paginationLastPage: 'Последняя страница',
-    paginationFirstPage: 'Первая страница',
-    paginationPreviousPage: 'Предыдущая страница',
     
-    // Сообщения
-    noRowsToShow: 'Нет данных для отображения',
-    loadingError: 'Ошибка загрузки',
-    
-    // Операции
+    // Меню и операции
+    columns: 'Колонки',
+    filters: 'Фильтры',
     copy: 'Копировать',
     copyWithHeaders: 'Копировать с заголовками',
-    paste: 'Вставить',
-    export: 'Экспорт',
-    csvExport: 'Экспорт CSV',
-    excelExport: 'Экспорт Excel',
-    
-    // Группировка и агрегация
-    sum: 'Сумма',
-    min: 'Минимум',
-    max: 'Максимум',
-    count: 'Количество',
-    avg: 'Среднее',
-    group: 'Группа',
-    
-    // Меню заголовка
-    pinColumn: 'Закрепить колонку',
-    pinLeft: 'Закрепить слева',
-    pinRight: 'Закрепить справа',
-    noPin: 'Не закреплять',
-    valueAggregation: 'Агрегация значений',
-    autosizeThiscolumn: 'Автоматический размер этой колонки',
-    autosizeAllColumns: 'Автоматический размер всех колонок',
-    groupBy: 'Группировать по',
-    ungroupBy: 'Разгруппировать по',
-    resetColumns: 'Сбросить колонки',
-    expandAll: 'Развернуть всё',
-    collapseAll: 'Свернуть всё',
-    toolPanel: 'Панель инструментов',
-    
-    // Выбор строк
     selectAll: 'Выбрать всё',
-    selectAllFiltered: 'Выбрать отфильтрованные',
-    deselectAll: 'Снять выделение',
-    deselectAllFiltered: 'Снять выделение с отфильтрованных'
+    deselectAll: 'Снять выделение'
   }), [])
 
   return (
@@ -529,6 +461,31 @@ export default function ProductTabs() {
                 setGridApi(params.api)
                 setTimeout(() => {
                   params.api.sizeColumnsToFit()
+                  
+                  // Принудительная замена "Page Size:" на русский
+                  const translatePageSize = () => {
+                    const pagingPanel = document.querySelector('.ag-paging-panel')
+                    if (pagingPanel) {
+                      const textNodes = []
+                      const walker = document.createTreeWalker(
+                        pagingPanel,
+                        NodeFilter.SHOW_TEXT,
+                        null,
+                        false
+                      )
+                      let node
+                      while (node = walker.nextNode()) {
+                        if (node.textContent.includes('Page Size')) {
+                          node.textContent = node.textContent.replace('Page Size', 'Размер страницы')
+                        }
+                      }
+                    }
+                  }
+                  
+                  translatePageSize()
+                  // Повторяем перевод каждые 100ms для обновлений
+                  const interval = setInterval(translatePageSize, 100)
+                  setTimeout(() => clearInterval(interval), 3000)
                 }, 100)
               }}
               rowClassRules={{

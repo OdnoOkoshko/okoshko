@@ -6,3 +6,8 @@
 .ag-theme-alpine .ag-popup {
   z-index: 1000;
 }
+
+/* CSS замена для Page Size */
+.ag-theme-alpine .ag-paging-panel {
+  position: relative;
+}
