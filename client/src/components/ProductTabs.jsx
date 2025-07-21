@@ -47,10 +47,20 @@ export default function ProductTabs() {
     }
   }
 
+  // Проверяем наличие ключей
+  const hasValidKeys = import.meta.env.VITE_SUPABASE_URL && 
+                      import.meta.env.VITE_SUPABASE_ANON_KEY &&
+                      import.meta.env.VITE_SUPABASE_URL !== 'https://stlffgzpqgzishvqhwad.supabase.co'
+
   // Загрузка данных при изменении активной вкладки
   useEffect(() => {
-    loadData(activeTab)
-  }, [activeTab])
+    if (hasValidKeys) {
+      loadData(activeTab)
+    } else {
+      setError('Ключи Supabase отсутствуют или неправильные')
+      setData([])
+    }
+  }, [activeTab, hasValidKeys])
 
   const tabs = [
     { id: 'moysklad', name: 'МойСклад' },
