@@ -211,11 +211,8 @@ export default function ProductTabs() {
           <div className="bg-white p-4 rounded-lg shadow-md">
             {/* Компактная панель управления */}
             <div className="flex items-center justify-between mb-3">
-              {/* Левая часть - поиск */}
-              <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-              
-              {/* Центральная часть - счетчик записей */}
-              <div className="text-sm text-gray-600 flex-1 text-center px-4">
+              {/* Левая часть - счетчик записей */}
+              <div className="text-sm text-gray-600">
                 {searchTerm ? (
                   <>Найдено {filteredData.length} из {fullData.length} • Показано {startItem}–{endItem}</>
                 ) : (
@@ -223,16 +220,19 @@ export default function ProductTabs() {
                 )}
               </div>
               
-              {/* Правая часть - кнопка управления столбцами */}
-              <div className="relative">
-                <button
-                  ref={buttonRef}
-                  onClick={() => setShowColumnMenu(!showColumnMenu)}
-                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-                  title="Управление столбцами"
-                >
-                  <FiSettings size={18} />
-                </button>
+              {/* Правая часть - поиск и кнопка управления столбцами */}
+              <div className="flex items-center gap-3">
+                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                <div className="relative">
+                  <button
+                    ref={buttonRef}
+                    onClick={() => setShowColumnMenu(!showColumnMenu)}
+                    className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                    title="Управление столбцами"
+                  >
+                    <FiSettings size={18} />
+                  </button>
+                </div>
               </div>
             </div>
             
