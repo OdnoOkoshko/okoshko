@@ -344,10 +344,7 @@ export default function ProductTabs() {
 
   return (
     <div className="max-w-full overflow-auto">
-      {/* Заголовок */}
       <div className="mb-6 space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900">Okoshko - Единое окно заказов</h1>
-        
         {/* Вкладки и управление */}
         <div className="bg-gray-50 p-2 rounded-lg">
           <div className="flex justify-between items-center">
