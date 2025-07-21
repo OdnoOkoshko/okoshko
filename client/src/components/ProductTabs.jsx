@@ -96,6 +96,7 @@ export default function ProductTabs() {
   const EditableHeader = ({ column, originalName, tableName }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [headerText, setHeaderText] = useState(getSavedColumnName(originalName, tableName))
+    const [sortState, setSortState] = useState(null) // 'asc', 'desc', null
 
     const handleDoubleClick = (e) => {
       e.stopPropagation()
@@ -103,12 +104,36 @@ export default function ProductTabs() {
     }
 
     const handleClick = (e) => {
-      if (!isEditing) {
-        // Обработка сортировки при обычном клике
+      if (!isEditing && gridApi && !gridApi.isDestroyed()) {
         e.stopPropagation()
-        column.sort()
+        
+        // Циклическая сортировка: null → asc → desc → null
+        let newSortState = null
+        if (sortState === null) {
+          newSortState = 'asc'
+        } else if (sortState === 'asc') {
+          newSortState = 'desc'
+        } else {
+          newSortState = null
+        }
+        
+        setSortState(newSortState)
+        
+        try {
+          gridApi.applyColumnState({
+            state: [{ colId: column.getColId(), sort: newSortState }],
+            defaultState: { sort: null }
+          })
+        } catch (error) {
+          console.warn('Ошибка сортировки:', error)
+        }
       }
     }
+
+    // Сброс состояния сортировки при смене вкладки
+    useEffect(() => {
+      setSortState(null)
+    }, [activeTab])
 
     const handleSubmit = (e) => {
       e.preventDefault()
@@ -148,6 +173,11 @@ export default function ProductTabs() {
         title="Клик - сортировка, двойной клик - переименовать"
       >
         <span>{headerText}</span>
+        {sortState && (
+          <span className="ml-1 text-blue-500 font-bold">
+            {sortState === 'asc' ? '↑' : '↓'}
+          </span>
+        )}
       </div>
     )
   }
