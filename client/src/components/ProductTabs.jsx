@@ -351,6 +351,23 @@ export default function ProductTabs() {
     pageSize: 'Размер страницы:',
     pageSizeSelector: 'Размер страницы',
     
+    // Дополнительные ключи для пагинации
+    'Page Size': 'Размер страницы',
+    'Page Size:': 'Размер страницы:',
+    paginationPageSize: 'Размер страницы',
+    paginationPageSizeSelector: 'Размер страницы',
+    
+    // Все возможные ключи пагинации
+    ariaPageSizeSelector: 'Размер страницы',
+    ariaPageSizeSelectorLabel: 'Размер страницы',
+    paginationOf: 'из',
+    paginationTo: 'до',
+    paginationPage: 'Страница',
+    paginationNextPage: 'Следующая страница',
+    paginationLastPage: 'Последняя страница',
+    paginationFirstPage: 'Первая страница',
+    paginationPreviousPage: 'Предыдущая страница',
+    
     // Сообщения
     noRowsToShow: 'Нет данных для отображения',
     loadingError: 'Ошибка загрузки',
