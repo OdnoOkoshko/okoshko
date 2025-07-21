@@ -111,22 +111,8 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
           ref={menuRef}
           className="absolute right-0 top-12 z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-[220px]"
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3">
             <div className="text-sm font-medium text-gray-700">Видимые столбцы:</div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setHiddenColumns([])}
-                className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Все
-              </button>
-              <button
-                onClick={() => setHiddenColumns([...allColumns])}
-                className="text-xs px-2 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-              >
-                Скрыть
-              </button>
-            </div>
           </div>
           <div className="space-y-1 max-h-60 overflow-y-auto">
             {allColumns.map(column => (
@@ -141,14 +127,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
               </label>
             ))}
           </div>
-          <div className="border-t border-gray-200 mt-2 pt-2">
-            <button
-              onClick={() => setColumnWidths({})}
-              className="text-xs px-2 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 w-full"
-            >
-              Сбросить ширину
-            </button>
-          </div>
+
         </div>
       )}
 
