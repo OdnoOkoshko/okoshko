@@ -5,11 +5,10 @@ import { supabase } from '../lib/supabaseClient'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
-  const [data, setData] = useState([])
+  const [fullData, setFullData] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
   const itemsPerPage = 100
 
   // Маппинг вкладок на таблицы в БД
@@ -20,51 +19,70 @@ export default function ProductTabs() {
     yandex: 'products_yandex'
   }
 
-  // Загрузка данных из Supabase с пагинацией
-  const loadData = async (tab, page = 1) => {
+  // Загрузка всех данных из Supabase
+  const loadData = async (tab) => {
     setLoading(true)
     setError(null)
     
     try {
       const tableName = tableMapping[tab]
-      const from = (page - 1) * itemsPerPage
-      const to = from + itemsPerPage - 1
       
-      // Загружаем данные для текущей страницы
-      const { data: pageData, error: dataError, count } = await supabase
-        .from(tableName)
-        .select('*', { count: 'exact' })
-        .range(from, to)
+      // Загружаем все данные порциями по 1000, чтобы обойти лимит Supabase
+      let allData = []
+      let from = 0
+      const chunkSize = 1000
       
-      if (dataError) {
-        throw new Error(`${tableName}: ${dataError.message}`)
+      while (true) {
+        const { data: chunk, error: chunkError } = await supabase
+          .from(tableName)
+          .select('*')
+          .range(from, from + chunkSize - 1)
+        
+        if (chunkError) {
+          throw new Error(`${tableName}: ${chunkError.message}`)
+        }
+        
+        if (!chunk || chunk.length === 0) {
+          break
+        }
+        
+        allData = [...allData, ...chunk]
+        
+        // Если получили меньше чем chunkSize, значит это последняя порция
+        if (chunk.length < chunkSize) {
+          break
+        }
+        
+        from += chunkSize
       }
       
-      setData(pageData || [])
-      setTotalCount(count || 0)
+      setFullData(allData)
     } catch (err) {
       setError(err.message)
-      setData([])
-      setTotalCount(0)
+      setFullData([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Загрузка данных при изменении активной вкладки или страницы
+  // Загрузка данных при изменении активной вкладки
   useEffect(() => {
-    loadData(activeTab, currentPage)
-  }, [activeTab, currentPage])
+    loadData(activeTab)
+  }, [activeTab])
   
   // Сброс страницы при смене вкладки
   useEffect(() => {
     setCurrentPage(1)
   }, [activeTab])
   
-  // Функции пагинации
+  // Функции пагинации и фильтрации данных
+  const totalCount = fullData.length
   const totalPages = Math.ceil(totalCount / itemsPerPage)
-  const startItem = (currentPage - 1) * itemsPerPage + 1
-  const endItem = Math.min(currentPage * itemsPerPage, totalCount)
+  const start = (currentPage - 1) * itemsPerPage
+  const end = currentPage * itemsPerPage
+  const pageData = fullData.slice(start, end)
+  const startItem = start + 1
+  const endItem = Math.min(end, totalCount)
   
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -145,7 +163,7 @@ export default function ProductTabs() {
           </div>
         )}
 
-        {!loading && !error && data.length === 0 && (
+        {!loading && !error && fullData.length === 0 && (
           <div className="bg-white p-8 rounded-lg shadow-md">
             <div className="text-center text-gray-500">
               <div className="text-4xl mb-4">📋</div>
@@ -154,7 +172,7 @@ export default function ProductTabs() {
           </div>
         )}
 
-        {!loading && !error && data.length > 0 && (
+        {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
             {/* Счетчик записей */}
             <div className="mb-4 text-sm text-gray-600">
@@ -165,7 +183,7 @@ export default function ProductTabs() {
               <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
                 <thead>
                   <tr style={{ height: '56px' }}>
-                    {Object.keys(data[0]).map(key => {
+                    {Object.keys(fullData[0]).map(key => {
                       // Определяем ширину колонки по названию
                       let width = '150px'
                       const keyLower = key.toLowerCase()
@@ -190,7 +208,7 @@ export default function ProductTabs() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((item, i) => (
+                  {pageData.map((item, i) => (
                     <tr key={i} className="hover:bg-gray-50" style={{ height: '56px' }}>
                       {Object.entries(item).map(([key, value], j) => {
                         // Определяем ширину колонки
