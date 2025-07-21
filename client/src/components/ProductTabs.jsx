@@ -7,6 +7,7 @@ import SearchBar from './SearchBar'
 import ProductTable from './ProductTable'
 import PaginationControls from './PaginationControls'
 import { usePersistentState } from '../../../shared/hooks/usePersistentState'
+import { usePersistentStateWithKey } from '../../../shared/hooks/usePersistentStateWithKey'
 import { saveToStorage, loadFromStorage } from '../../../shared/storage.ts'
 
 export default function ProductTabs() {
@@ -17,14 +18,8 @@ export default function ProductTabs() {
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [hiddenColumns, setHiddenColumns] = usePersistentState('hiddenColumns', [])
-  const [columnWidths, setColumnWidths] = useState(() => {
-    const saved = localStorage.getItem(`columnWidths_${activeTab}`)
-    return saved ? JSON.parse(saved) : {}
-  })
-  const [sortConfig, setSortConfig] = useState(() => {
-    const saved = localStorage.getItem(`sortConfig_${activeTab}`)
-    return saved ? JSON.parse(saved) : { column: null, direction: null }
-  })
+  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `columnWidths_${activeTab}`, {}, [activeTab])
+  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -105,24 +100,7 @@ export default function ProductTabs() {
   }, [activeTab])
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
   
-  // Сохранение ширины колонок в localStorage
-  useEffect(() => {
-    localStorage.setItem(`columnWidths_${activeTab}`, JSON.stringify(columnWidths))
-  }, [columnWidths, activeTab])
 
-  // Загрузка ширины колонок и сортировки при смене вкладки
-  useEffect(() => {
-    const savedWidths = localStorage.getItem(`columnWidths_${activeTab}`)
-    const savedSort = localStorage.getItem(`sortConfig_${activeTab}`)
-    
-    setColumnWidths(savedWidths ? JSON.parse(savedWidths) : {})
-    setSortConfig(savedSort ? JSON.parse(savedSort) : { column: null, direction: null })
-  }, [activeTab])
-
-  // Сохранение сортировки при каждом изменении
-  useEffect(() => {
-    localStorage.setItem(`sortConfig_${activeTab}`, JSON.stringify(sortConfig))
-  }, [sortConfig, activeTab])
 
   // Закрытие меню при клике вне его
   useEffect(() => {
