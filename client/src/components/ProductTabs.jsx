@@ -22,16 +22,24 @@ export default function ProductTabs() {
     
     try {
       const tableName = tableMapping[tab]
+      console.log(`Загружаем данные из таблицы: ${tableName}`)
+      
       const { data: tableData, error: tableError } = await supabase
         .from(tableName)
         .select('*')
+        .limit(50)
+      
+      console.log('Результат запроса:', { tableData, tableError })
       
       if (tableError) {
-        throw new Error(`Ошибка загрузки ${tableName}: ${tableError.message}`)
+        console.error('Ошибка Supabase:', tableError)
+        throw new Error(`${tableName}: ${tableError.message} (${tableError.code})`)
       }
       
       setData(tableData || [])
+      console.log(`Загружено записей: ${tableData?.length || 0}`)
     } catch (err) {
+      console.error('Полная ошибка:', err)
       setError(err.message)
       setData([])
     } finally {
@@ -54,6 +62,29 @@ export default function ProductTabs() {
   // Получение колонок из первой записи данных
   const columns = data.length > 0 ? Object.keys(data[0]) : []
 
+  // Тест подключения к Supabase
+  const testConnection = async () => {
+    try {
+      console.log('=== ДИАГНОСТИКА SUPABASE ===')
+      console.log('URL:', import.meta.env.VITE_SUPABASE_URL)
+      console.log('Key длина:', import.meta.env.VITE_SUPABASE_ANON_KEY?.length)
+      console.log('Key начало:', import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20) + '...')
+      
+      const { data: session, error } = await supabase.auth.getSession()
+      console.log('Сессия:', session, 'Ошибка:', error)
+      
+      // Проверим доступность таблицы простым запросом
+      const { data, error: testError } = await supabase
+        .from('products_moysklad')
+        .select('count')
+        .limit(1)
+      
+      console.log('Тест таблицы products_moysklad:', { data, testError })
+    } catch (err) {
+      console.error('Ошибка теста:', err)
+    }
+  }
+
   return (
     <div className="w-full">
       {/* Вкладки */}
@@ -72,6 +103,12 @@ export default function ProductTabs() {
               {tab.name}
             </button>
           ))}
+          <button
+            onClick={testConnection}
+            className="py-2 px-3 text-xs bg-gray-100 hover:bg-gray-200 rounded"
+          >
+            Тест
+          </button>
         </nav>
       </div>
 
