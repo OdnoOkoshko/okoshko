@@ -6,30 +6,61 @@ export default function SupabaseTest() {
   const [tables, setTables] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [config, setConfig] = useState({ url: '', key: '' })
 
   useEffect(() => {
+    // Показываем конфигурацию
+    setConfig({
+      url: import.meta.env.VITE_SUPABASE_URL || 'не установлен',
+      key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'установлен' : 'не установлен'
+    })
+    
     checkConnection()
   }, [])
 
   const checkConnection = async () => {
     try {
       setLoading(true)
+      setError(null)
       
-      // Проверяем подключение
-      const { data, error } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
-        .limit(10)
+      // Проверяем переменные окружения
+      const url = import.meta.env.VITE_SUPABASE_URL
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+      
+      console.log('URL:', url)
+      console.log('Key exists:', !!key)
+      
+      if (!url || !key) {
+        throw new Error('Отсутствуют переменные окружения VITE_SUPABASE_URL или VITE_SUPABASE_ANON_KEY')
+      }
 
-      if (error) {
-        console.error('Supabase connection error:', error)
-        setError(error.message)
+      // Самый простой тест - получение сессии
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Supabase auth error:', sessionError)
+        setError(`Ошибка подключения: ${sessionError.message}`)
         setConnected(false)
       } else {
         setConnected(true)
-        setTables(data || [])
-        console.log('Supabase подключен! Таблицы:', data)
+        console.log('Supabase подключен! Сессия:', sessionData)
+        setError(null)
+        
+        // Пытаемся создать простую таблицу или проверить существующие
+        try {
+          // Простой SQL запрос
+          const { data: testData, error: testError } = await supabase
+            .from('pg_tables')
+            .select('tablename')
+            .limit(5)
+          
+          if (!testError) {
+            setTables(testData?.map(t => ({ table_name: t.tablename })) || [])
+            console.log('Найдены таблицы:', testData)
+          }
+        } catch (tableErr) {
+          console.log('Не удалось получить список таблиц:', tableErr)
+        }
       }
     } catch (err) {
       console.error('Connection test failed:', err)
@@ -80,6 +111,13 @@ export default function SupabaseTest() {
           <span className="font-medium">
             {connected ? 'Подключено успешно' : 'Ошибка подключения'}
           </span>
+        </div>
+        
+        {/* Показываем конфигурацию */}
+        <div className="mt-3 p-3 bg-gray-50 rounded text-sm">
+          <h4 className="font-medium mb-2">Конфигурация:</h4>
+          <p><strong>URL:</strong> {config.url}</p>
+          <p><strong>Anon Key:</strong> {config.key}</p>
         </div>
         
         {error && (
