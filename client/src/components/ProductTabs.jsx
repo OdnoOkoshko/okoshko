@@ -113,7 +113,7 @@ export default function ProductTabs() {
     localStorage.setItem(`columnWidths_${activeTab}`, JSON.stringify(columnWidths))
   }, [columnWidths, activeTab])
 
-  // Загрузка ширины колонок и сортировки при смене вкладки
+  // Загрузка ширины колонок при смене вкладки
   useEffect(() => {
     const savedWidths = localStorage.getItem(`columnWidths_${activeTab}`)
     if (savedWidths) {
@@ -121,14 +121,18 @@ export default function ProductTabs() {
     } else {
       setColumnWidths({})
     }
-
-    const savedSort = localStorage.getItem(`sortState_${activeTab}`)
-    if (savedSort) {
-      setSortConfig(JSON.parse(savedSort))
-    } else {
-      setSortConfig({ column: null, direction: null })
-    }
   }, [activeTab])
+
+  // Загрузка сортировки при смене вкладки
+  useEffect(() => {
+    const saved = localStorage.getItem(`sortConfig_${activeTab}`)
+    setSortConfig(saved ? JSON.parse(saved) : { column: null, direction: null })
+  }, [activeTab])
+
+  // Сохранение сортировки при каждом изменении
+  useEffect(() => {
+    localStorage.setItem(`sortConfig_${activeTab}`, JSON.stringify(sortConfig))
+  }, [sortConfig, activeTab])
 
   // Закрытие меню при клике вне его
   useEffect(() => {
@@ -246,8 +250,6 @@ export default function ProductTabs() {
     }
     
     setSortConfig(newSortConfig)
-    // Сохраняем сразу при изменении пользователем
-    localStorage.setItem(`sortState_${activeTab}`, JSON.stringify(newSortConfig))
   }
 
   return (
