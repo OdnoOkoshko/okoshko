@@ -97,9 +97,9 @@ export default function SupabaseStatus() {
     
     // Список возможных таблиц для проверки
     const tablesToTest = [
+      'products_moysklad', // таблица пользователя
       'orders', 'products', 'users', 'categories', 'marketplace_orders',
-      'order_items', 'customers', 'items', 'inventory', 'suppliers',
-      'auth.users' // проверяем auth таблицы тоже
+      'order_items', 'customers', 'items', 'inventory', 'suppliers'
     ]
     const existingTables = []
     
@@ -204,12 +204,38 @@ export default function SupabaseStatus() {
             )}
           </div>
           
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 flex-wrap">
             <button 
               onClick={testExistingTables}
               className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
             >
               Найти таблицы
+            </button>
+            <button 
+              onClick={async () => {
+                console.log('🔍 Тестируем products_moysklad...')
+                try {
+                  const { data, error } = await supabase
+                    .from('products_moysklad')
+                    .select('*')
+                    .limit(5)
+                  
+                  if (!error) {
+                    console.log('✅ products_moysklad работает! Данные:', data)
+                    setStatus(prev => ({ 
+                      ...prev, 
+                      tables: [{ table_name: 'products_moysklad', table_schema: 'public' }]
+                    }))
+                  } else {
+                    console.log('❌ Ошибка доступа к products_moysklad:', error)
+                  }
+                } catch (err) {
+                  console.log('❌ Ошибка:', err)
+                }
+              }}
+              className="text-sm bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+            >
+              Тест products_moysklad
             </button>
             <button 
               onClick={createTestTable}
