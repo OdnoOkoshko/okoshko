@@ -6,6 +6,8 @@ import { FiSettings } from 'react-icons/fi'
 import SearchBar from './SearchBar'
 import ProductTable from './ProductTable'
 import PaginationControls from './PaginationControls'
+import { usePersistentState } from '../../../shared/hooks/usePersistentState'
+import { saveToStorage, loadFromStorage } from '../../../shared/storage'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
@@ -14,14 +16,8 @@ export default function ProductTabs() {
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
-  const [hiddenColumns, setHiddenColumns] = useState(() => {
-    const saved = localStorage.getItem('hiddenColumns')
-    return saved ? JSON.parse(saved) : []
-  })
-  const [columnWidths, setColumnWidths] = useState(() => {
-    const saved = localStorage.getItem(`columnWidths_${activeTab}`)
-    return saved ? JSON.parse(saved) : {}
-  })
+  const [hiddenColumns, setHiddenColumns] = usePersistentState('hiddenColumns', [])
+  const [columnWidths, setColumnWidths] = useState({})
   const [sortConfig, setSortConfig] = useState({ column: null, direction: null })
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
@@ -103,35 +99,20 @@ export default function ProductTabs() {
   }, [activeTab])
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
   
-  // Сохранение в localStorage при изменении hiddenColumns
-  useEffect(() => {
-    localStorage.setItem('hiddenColumns', JSON.stringify(hiddenColumns))
-  }, [hiddenColumns])
-
   // Сохранение ширины колонок в localStorage
   useEffect(() => {
-    localStorage.setItem(`columnWidths_${activeTab}`, JSON.stringify(columnWidths))
+    saveToStorage(`columnWidths_${activeTab}`, columnWidths)
   }, [columnWidths, activeTab])
 
-  // Загрузка ширины колонок при смене вкладки
+  // Загрузка ширины колонок и сортировки при смене вкладки
   useEffect(() => {
-    const savedWidths = localStorage.getItem(`columnWidths_${activeTab}`)
-    if (savedWidths) {
-      setColumnWidths(JSON.parse(savedWidths))
-    } else {
-      setColumnWidths({})
-    }
-  }, [activeTab])
-
-  // Загрузка сортировки при смене вкладки
-  useEffect(() => {
-    const saved = localStorage.getItem(`sortConfig_${activeTab}`)
-    setSortConfig(saved ? JSON.parse(saved) : { column: null, direction: null })
+    setColumnWidths(loadFromStorage(`columnWidths_${activeTab}`, {}))
+    setSortConfig(loadFromStorage(`sortConfig_${activeTab}`, { column: null, direction: null }))
   }, [activeTab])
 
   // Сохранение сортировки при каждом изменении
   useEffect(() => {
-    localStorage.setItem(`sortConfig_${activeTab}`, JSON.stringify(sortConfig))
+    saveToStorage(`sortConfig_${activeTab}`, sortConfig)
   }, [sortConfig, activeTab])
 
   // Закрытие меню при клике вне его
