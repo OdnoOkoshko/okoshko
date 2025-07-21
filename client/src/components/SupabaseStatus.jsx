@@ -24,12 +24,52 @@ export default function SupabaseStatus() {
         throw new Error(`Ошибка авторизации: ${sessionError.message}`)
       }
 
-      // Проверяем доступные таблицы
-      const { data: tablesData, error: tablesError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name, table_schema')
-        .eq('table_schema', 'public')
-        .limit(10)
+      // Проверяем доступные таблицы разными способами
+      let tablesData = []
+      
+      // Способ 1: через information_schema
+      try {
+        const { data: schemaData, error: schemaError } = await supabase
+          .from('information_schema.tables')
+          .select('table_name, table_schema')
+          .limit(20)
+        
+        if (!schemaError && schemaData) {
+          tablesData = schemaData
+          console.log('📋 Все таблицы в базе:', schemaData)
+        }
+      } catch (err) {
+        console.log('Не удалось получить через information_schema:', err)
+      }
+      
+      // Способ 2: через pg_tables (если первый не работает)
+      if (tablesData.length === 0) {
+        try {
+          const { data: pgData, error: pgError } = await supabase
+            .from('pg_tables')
+            .select('tablename, schemaname')
+            .limit(20)
+          
+          if (!pgError && pgData) {
+            tablesData = pgData.map(t => ({ 
+              table_name: t.tablename, 
+              table_schema: t.schemaname 
+            }))
+            console.log('📋 Таблицы через pg_tables:', pgData)
+          }
+        } catch (err) {
+          console.log('Не удалось получить через pg_tables:', err)
+        }
+      }
+      
+      // Способ 3: проверяем распространенные таблицы напрямую
+      if (tablesData.length === 0) {
+        console.log('🔍 Проверяем существующие таблицы напрямую...')
+        const foundTables = await testExistingTables()
+        if (foundTables.length > 0) {
+          tablesData = foundTables.map(name => ({ table_name: name, table_schema: 'public' }))
+        }
+      }
 
       setStatus({
         connected: true,
@@ -50,6 +90,50 @@ export default function SupabaseStatus() {
       })
       console.error('❌ Ошибка подключения к Supabase:', err)
     }
+  }
+
+  const testExistingTables = async () => {
+    console.log('🔍 Проверяем существующие таблицы...')
+    
+    // Список возможных таблиц для проверки
+    const tablesToTest = [
+      'orders', 'products', 'users', 'categories', 'marketplace_orders',
+      'order_items', 'customers', 'items', 'inventory', 'suppliers',
+      'auth.users' // проверяем auth таблицы тоже
+    ]
+    const existingTables = []
+    
+    for (const tableName of tablesToTest) {
+      try {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*')
+          .limit(1)
+        
+        if (!error) {
+          existingTables.push(tableName)
+          console.log(`✅ Таблица ${tableName} найдена (записей: ${data?.length || 0})`)
+        } else if (error.code === 'PGRST116') {
+          // Таблица существует, но нет данных - это тоже успех
+          existingTables.push(tableName)
+          console.log(`✅ Таблица ${tableName} найдена (пустая)`)
+        }
+      } catch (err) {
+        console.log(`❌ Таблица ${tableName} не найдена`)
+      }
+    }
+    
+    if (existingTables.length > 0) {
+      console.log('🎉 Найдены таблицы:', existingTables)
+      setStatus(prev => ({ 
+        ...prev, 
+        tables: existingTables.map(name => ({ table_name: name, table_schema: 'public' }))
+      }))
+    } else {
+      console.log('ℹ️ Возможно таблицы существуют, но недоступны через API')
+    }
+    
+    return existingTables
   }
 
   const createTestTable = async () => {
@@ -121,6 +205,12 @@ export default function SupabaseStatus() {
           </div>
           
           <div className="flex space-x-2">
+            <button 
+              onClick={testExistingTables}
+              className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+            >
+              Найти таблицы
+            </button>
             <button 
               onClick={createTestTable}
               className="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
