@@ -12,12 +12,11 @@ import { saveToStorage, loadFromStorage, removeFromStorage } from '../../../shar
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
-  const [fullData, setFullData] = useState([])
+  const [tabData, setTabData] = useState({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
-  const [tabLoaded, setTabLoaded] = useState({})
   const [hiddenColumns, setHiddenColumns] = usePersistentState('hiddenColumns', [])
   const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `columnWidths_${activeTab}`, {}, [activeTab])
   const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
@@ -58,40 +57,36 @@ export default function ProductTabs() {
     }
   ]
 
-  // Загрузка всех данных из Supabase
+  // Загрузка данных из Supabase
   const loadData = async (tab) => {
-    try {
-      const tableName = tableMapping[tab]
-      let allData = []
-      let from = 0
-      const chunkSize = 1000
+    const tableName = tableMapping[tab]
+    let allData = []
+    let from = 0
+    const chunkSize = 1000
+    
+    while (true) {
+      const { data: chunk, error: chunkError } = await supabase
+        .from(tableName)
+        .select('*')
+        .range(from, from + chunkSize - 1)
       
-      while (true) {
-        const { data: chunk, error: chunkError } = await supabase
-          .from(tableName)
-          .select('*')
-          .range(from, from + chunkSize - 1)
-        
-        if (chunkError) {
-          throw new Error(`${tableName}: ${chunkError.message}`)
-        }
-        
-        if (!chunk || chunk.length === 0) break
-        
-        allData = [...allData, ...chunk]
-        if (chunk.length < chunkSize) break
-        from += chunkSize
+      if (chunkError) {
+        throw new Error(`${tableName}: ${chunkError.message}`)
       }
       
-      return allData
-    } catch (err) {
-      throw err
+      if (!chunk || chunk.length === 0) break
+      
+      allData = [...allData, ...chunk]
+      if (chunk.length < chunkSize) break
+      from += chunkSize
     }
+    
+    return allData
   }
 
   // Загрузка данных для вкладки при первом открытии
   useEffect(() => {
-    if (!tabLoaded[activeTab]) {
+    if (!tabData[activeTab]) {
       let isCurrent = true
 
       const fetchData = async () => {
@@ -102,13 +97,18 @@ export default function ProductTabs() {
           const data = await loadData(activeTab)
           if (!isCurrent) return
           
-          setFullData(data)
-          setTabLoaded(prev => ({ ...prev, [activeTab]: true }))
+          setTabData(prev => ({
+            ...prev,
+            [activeTab]: data
+          }))
         } catch (err) {
           if (!isCurrent) return
           
           setError(err.message)
-          setFullData([])
+          setTabData(prev => ({
+            ...prev,
+            [activeTab]: []
+          }))
         } finally {
           if (!isCurrent) return
           
@@ -125,6 +125,9 @@ export default function ProductTabs() {
   }, [activeTab])
   
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
+
+  // Получение текущих данных для активной вкладки
+  const fullData = tabData[activeTab] || []
   
 
 
@@ -280,7 +283,7 @@ export default function ProductTabs() {
             }`}
           >
             {label}
-            {!tabLoaded[key] && key !== activeTab && (
+            {!tabData[key] && key !== activeTab && (
               <span className="ml-1 text-xs opacity-60">•</span>
             )}
           </button>
