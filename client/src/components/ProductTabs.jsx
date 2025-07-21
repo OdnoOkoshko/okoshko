@@ -192,7 +192,7 @@ export default function ProductTabs() {
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
             {/* Поле поиска */}
-            <div className="mb-4">
+            <div className="mb-4 flex justify-center">
               <input
                 type="text"
                 placeholder="Поиск..."
