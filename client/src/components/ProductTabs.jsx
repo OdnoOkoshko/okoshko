@@ -282,13 +282,7 @@ export default function ProductTabs() {
         sortable: true,
         filter: true,
         resizable: true,
-        headerComponent: (params) => (
-          <EditableHeader 
-            column={params.column} 
-            originalName={field} 
-            tableName={tableName} 
-          />
-        ),
+
         cellRenderer,
         minWidth,
         maxWidth,
@@ -436,6 +430,8 @@ export default function ProductTabs() {
                 }
                 return null
               }}
+              sortingOrder={['asc', 'desc', null]}
+              multiSortKey="ctrl"
             />
           </div>
         )}
