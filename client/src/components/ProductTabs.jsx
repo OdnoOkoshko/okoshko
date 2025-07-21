@@ -66,9 +66,19 @@ export default function ProductTabs() {
   const testConnection = async () => {
     try {
       console.log('=== ДИАГНОСТИКА SUPABASE ===')
-      console.log('URL:', import.meta.env.VITE_SUPABASE_URL)
+      const url = import.meta.env.VITE_SUPABASE_URL
+      console.log('URL:', url)
       console.log('Key длина:', import.meta.env.VITE_SUPABASE_ANON_KEY?.length)
-      console.log('Key начало:', import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20) + '...')
+      
+      // Проверим доступность базового URL
+      try {
+        const response = await fetch(url)
+        console.log('Базовый URL доступен:', response.status)
+      } catch (fetchError) {
+        console.error('URL недоступен:', fetchError.message)
+        setError('Supabase URL недоступен. Проверьте правильность URL в настройках проекта.')
+        return
+      }
       
       const { data: session, error } = await supabase.auth.getSession()
       console.log('Сессия:', session, 'Ошибка:', error)
