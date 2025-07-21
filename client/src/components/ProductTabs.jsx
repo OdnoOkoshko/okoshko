@@ -140,6 +140,38 @@ export default function ProductTabs() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Определение типа данных в колонке
+  const getColumnDataType = (columnKey, data) => {
+    if (!data.length) return 'string'
+    
+    const samples = data.slice(0, 10).map(item => item[columnKey]).filter(val => val != null && val !== '')
+    if (samples.length === 0) return 'string'
+    
+    // Проверяем, все ли значения числа
+    const isAllNumbers = samples.every(val => !isNaN(parseFloat(val)) && isFinite(val))
+    if (isAllNumbers) return 'number'
+    
+    return 'string'
+  }
+
+  // Функция сравнения для сортировки
+  const compareValues = (a, b, dataType, direction) => {
+    if (a == null || a === '') a = ''
+    if (b == null || b === '') b = ''
+    
+    let result = 0
+    
+    if (dataType === 'number') {
+      const numA = parseFloat(a) || 0
+      const numB = parseFloat(b) || 0
+      result = numA - numB
+    } else {
+      result = String(a).localeCompare(String(b), 'ru', { numeric: true, sensitivity: 'base' })
+    }
+    
+    return direction === 'desc' ? -result : result
+  }
+
   // Фильтрация и сортировка данных
   const processedData = useMemo(() => {
     // Сначала фильтрация
@@ -189,20 +221,6 @@ export default function ProductTabs() {
     )
   }
 
-  // Определение типа данных в колонке
-  const getColumnDataType = (columnKey, data) => {
-    if (!data.length) return 'string'
-    
-    const samples = data.slice(0, 10).map(item => item[columnKey]).filter(val => val != null && val !== '')
-    if (samples.length === 0) return 'string'
-    
-    // Проверяем, все ли значения числа
-    const isAllNumbers = samples.every(val => !isNaN(parseFloat(val)) && isFinite(val))
-    if (isAllNumbers) return 'number'
-    
-    return 'string'
-  }
-
   // Функция сортировки
   const handleSort = (columnKey) => {
     let newDirection = 'asc'
@@ -219,24 +237,6 @@ export default function ProductTabs() {
       column: newDirection ? columnKey : null, 
       direction: newDirection 
     })
-  }
-
-  // Функция сравнения для сортировки
-  const compareValues = (a, b, dataType, direction) => {
-    if (a == null || a === '') a = ''
-    if (b == null || b === '') b = ''
-    
-    let result = 0
-    
-    if (dataType === 'number') {
-      const numA = parseFloat(a) || 0
-      const numB = parseFloat(b) || 0
-      result = numA - numB
-    } else {
-      result = String(a).localeCompare(String(b), 'ru', { numeric: true, sensitivity: 'base' })
-    }
-    
-    return direction === 'desc' ? -result : result
   }
 
   return (
