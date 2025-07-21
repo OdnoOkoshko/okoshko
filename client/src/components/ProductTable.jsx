@@ -90,34 +90,23 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
   }, [isResizing, handleMouseMove, handleMouseUp])
 
   // Проверка типа поля - мемоизация для производительности
-  const isImageField = useCallback((key) => {
+  const isImageField = (key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
-  }, [])
+  }
 
-  const isLinkField = useCallback((key) => {
+  const isLinkField = (key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('link') || keyLower.includes('url')
-  }, [])
+  }
 
-  // Обработка ошибки изображения - безопасный подход без прямой манипуляции DOM
-  const handleImageError = useCallback((imageUrl) => {
+  // Обработка ошибки изображения
+  const handleImageError = (imageUrl) => {
     setBrokenImages(prev => new Set([...prev, imageUrl]))
-  }, [])
+  }
 
-  // Стили ячейки
-  const cellStyles = (width) => ({
-    width,
-    minWidth: width,
-    maxWidth: width,
-    height: '48px'
-  })
+  // Стили ячейки удалены - используются inline-стили
 
-  const textCellStyles = (width) => ({
-    ...cellStyles(width),
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
-  })
 
   return (
     <div className="relative">
@@ -148,9 +137,9 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
       )}
 
       <div className="overflow-x-auto">
-        <table className="border-collapse border border-gray-300" style={{ tableLayout: 'fixed', width: '100%' }}>
+        <table className="border-collapse border border-gray-300 table-fixed w-full">
           <thead>
-            <tr style={{ height: '48px' }}>
+            <tr className="h-12">
               {visibleColumns.map(key => {
                 const width = getColumnWidth(key)
                 const isSorted = sortConfig.column === key
@@ -158,7 +147,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                   <th 
                     key={key} 
                     className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors"
-                    style={cellStyles(width)}
+                    style={{ width, minWidth: width, maxWidth: width, height: '48px' }}
                     onClick={() => onSort(key)}
                     title="Нажмите для сортировки"
                   >
@@ -186,7 +175,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
           </thead>
           <tbody>
             {pageData.map((item, i) => (
-              <tr key={i} className="hover:bg-blue-50 transition-colors duration-150" style={{ height: '48px' }}>
+              <tr key={i} className="hover:bg-blue-50 transition-colors duration-150 h-12">
                 {visibleColumns.map((key, j) => {
                   const value = item[key]
                   const width = getColumnWidth(key)
@@ -198,7 +187,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                       <td 
                         key={j} 
                         className="px-3 py-2 border text-xs text-center align-middle"
-                        style={cellStyles(width)}
+                        style={{ width, minWidth: width, maxWidth: width, height: '48px' }}
                       >
                         {isImageBroken ? (
                           <button 
@@ -225,7 +214,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                       <td 
                         key={j} 
                         className="px-3 py-2 border text-xs text-center align-middle"
-                        style={cellStyles(width)}
+                        style={{ width, minWidth: width, maxWidth: width, height: '48px' }}
                       >
                         <button 
                           onClick={() => window.open(value, '_blank', 'noopener,noreferrer')}
@@ -241,7 +230,7 @@ export default function ProductTable({ pageData, fullData, showColumnMenu, setSh
                     <td 
                       key={j} 
                       className="px-3 py-2 border text-xs align-middle overflow-hidden"
-                      style={textCellStyles(width)}
+                      style={{ width, minWidth: width, maxWidth: width, height: '48px', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                       title={String(value)}
                     >
                       {String(value)}

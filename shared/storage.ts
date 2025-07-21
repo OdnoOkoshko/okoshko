@@ -4,7 +4,7 @@ export function saveToStorage(key: string, value: any): void {
   try {
     localStorage.setItem(key, JSON.stringify(value))
   } catch (error) {
-    console.warn('Failed to save to localStorage:', key, error)
+    // Игнорируем ошибки сохранения
   }
 }
 
@@ -13,7 +13,7 @@ export function loadFromStorage<T>(key: string, fallback: T): T {
     const item = localStorage.getItem(key)
     return item ? JSON.parse(item) : fallback
   } catch (error) {
-    console.warn('Failed to load from localStorage:', key, error)
+    // Игнорируем ошибки загрузки
     return fallback
   }
 }
@@ -22,6 +22,6 @@ export function removeFromStorage(key: string): void {
   try {
     localStorage.removeItem(key)
   } catch (error) {
-    console.warn('Failed to remove from localStorage:', key, error)
+    // Игнорируем ошибки удаления
   }
 }

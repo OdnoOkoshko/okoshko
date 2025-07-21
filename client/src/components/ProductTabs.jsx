@@ -17,9 +17,9 @@ export default function ProductTabs() {
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
-  const [hiddenColumns, setHiddenColumns] = usePersistentState('hiddenColumns', [])
-  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `columnWidths_${activeTab}`, {}, [activeTab])
-  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
+  const [hiddenColumns, setHiddenColumns] = usePersistentState('okoshko_hiddenColumns', [])
+  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {}, [activeTab])
+  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `okoshko_sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -71,7 +71,7 @@ export default function ProductTabs() {
         .range(from, from + chunkSize - 1)
       
       if (chunkError) {
-        throw new Error(`${tableName}: ${chunkError.message}`)
+        throw new Error('Ошибка при загрузке данных')
       }
       
       if (!chunk || chunk.length === 0) break
@@ -252,9 +252,9 @@ export default function ProductTabs() {
   // Функция сброса настроек таблицы
   const handleResetSettings = () => {
     // Удаляем настройки из localStorage
-    removeFromStorage(`columnWidths_${activeTab}`)
-    removeFromStorage(`sortConfig_${activeTab}`)
-    removeFromStorage('hiddenColumns')
+    removeFromStorage(`okoshko_columnWidths_${activeTab}`)
+    removeFromStorage(`okoshko_sortConfig_${activeTab}`)
+    removeFromStorage('okoshko_hiddenColumns')
     
     // Сбрасываем состояния к дефолтным
     setColumnWidths({})
@@ -302,15 +302,9 @@ export default function ProductTabs() {
         )}
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-md shadow-sm">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <span className="text-red-500 font-bold">⚠</span>
-              </div>
-              <div className="ml-3">
-                <strong>Ошибка:</strong> {error}
-              </div>
-            </div>
+          <div className="text-red-600 p-8 text-center bg-red-50 border border-red-200 rounded">
+            <div className="text-lg font-medium mb-2">Не удалось загрузить данные</div>
+            <div className="text-sm text-red-500">Попробуйте обновить страницу или выберите другую вкладку</div>
           </div>
         )}
 
