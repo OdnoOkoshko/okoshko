@@ -1,0 +1,62 @@
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ProductTabs.jsx:25 Загружаем данные из таблицы: products_moysklad
+stlffgzpqgzishvqhwad.supabase.co/rest/v1/products_moysklad?select=*&limit=50:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+ProductTabs.jsx:32 Результат запроса: Object
+ProductTabs.jsx:35 Ошибка Supabase: Object
+loadData @ ProductTabs.jsx:35
+ProductTabs.jsx:42 Полная ошибка: Error: products_moysklad: TypeError: Failed to fetch ()
+    at loadData (ProductTabs.jsx:36:15)
+loadData @ ProductTabs.jsx:42
+ProductTabs.jsx:68 === ДИАГНОСТИКА SUPABASE ===
+ProductTabs.jsx:69 URL: https://stlffgzpqgzishvqhwad.supabase.co
+ProductTabs.jsx:70 Key длина: 219
+ProductTabs.jsx:71 Key начало: eyJhbGciOiJIUzI1NiIs...
+ProductTabs.jsx:74 Сессия: Object Ошибка: null
+stlffgzpqgzishvqhwad.supabase.co/rest/v1/products_moysklad?select=count&limit=1:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+ProductTabs.jsx:82 Тест таблицы products_moysklad: Object
+ProductTabs.jsx:68 === ДИАГНОСТИКА SUPABASE ===
+ProductTabs.jsx:69 URL: https://stlffgzpqgzishvqhwad.supabase.co
+ProductTabs.jsx:70 Key длина: 219
+ProductTabs.jsx:71 Key начало: eyJhbGciOiJIUzI1NiIs...
+ProductTabs.jsx:74 Сессия: Object Ошибка: null
+stlffgzpqgzishvqhwad.supabase.co/rest/v1/products_moysklad?select=count&limit=1:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+ProductTabs.jsx:82 Тест таблицы products_moysklad: Object
+ProductTabs.jsx:68 === ДИАГНОСТИКА SUPABASE ===
+ProductTabs.jsx:69 URL: https://stlffgzpqgzishvqhwad.supabase.co
+ProductTabs.jsx:70 Key длина: 219
+ProductTabs.jsx:71 Key начало: eyJhbGciOiJIUzI1NiIs...
+ProductTabs.jsx:74 Сессия: Object Ошибка: null
+stlffgzpqgzishvqhwad.supabase.co/rest/v1/products_moysklad?select=count&limit=1:1  Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+ProductTabs.jsx:82 Тест таблицы products_moysklad: Object
+ProductTabs.jsx:68 === ДИАГНОСТИКА SUPABASE ===
+ProductTabs.jsx:69 URL: https://stlffgzpqgzishvqhwad.supabase.co
+ProductTabs.jsx:70 Key длина: 219
+ProductTabs.jsx:71 Key начало: eyJhbGciOiJIUzI1NiIs...
+ProductTabs.jsx:74 Сессия: {session: null} Ошибка: null
+@supabase_supabase-js.js?v=5acb934d:3922  GET https://stlffgzpqgzishvqhwad.supabase.co/rest/v1/products_moysklad?select=count&limit=1 net::ERR_NAME_NOT_RESOLVED
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3922
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3943
+fulfilled @ @supabase_supabase-js.js?v=5acb934d:3895
+Promise.then
+step @ @supabase_supabase-js.js?v=5acb934d:3908
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3910
+__awaiter6 @ @supabase_supabase-js.js?v=5acb934d:3892
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3933
+then @ @supabase_supabase-js.js?v=5acb934d:89
+ProductTabs.jsx:82 Тест таблицы products_moysklad: {data: null, testError: {…}}
+ProductTabs.jsx:68 === ДИАГНОСТИКА SUPABASE ===
+ProductTabs.jsx:69 URL: https://stlffgzpqgzishvqhwad.supabase.co
+ProductTabs.jsx:70 Key длина: 219
+ProductTabs.jsx:71 Key начало: eyJhbGciOiJIUzI1NiIs...
+ProductTabs.jsx:74 Сессия: {session: null} Ошибка: null
+@supabase_supabase-js.js?v=5acb934d:3922  GET https://stlffgzpqgzishvqhwad.supabase.co/rest/v1/products_moysklad?select=count&limit=1 net::ERR_NAME_NOT_RESOLVED
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3922
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3943
+fulfilled @ @supabase_supabase-js.js?v=5acb934d:3895
+Promise.then
+step @ @supabase_supabase-js.js?v=5acb934d:3908
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3910
+__awaiter6 @ @supabase_supabase-js.js?v=5acb934d:3892
+(анонимная) @ @supabase_supabase-js.js?v=5acb934d:3933
+then @ @supabase_supabase-js.js?v=5acb934d:89
+ProductTabs.jsx:82 Тест таблицы products_moysklad: {data: null, testError: {…}}
