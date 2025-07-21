@@ -438,7 +438,6 @@ export default function ProductTabs() {
                   const translatePageSize = () => {
                     const pagingPanel = document.querySelector('.ag-paging-panel')
                     if (pagingPanel) {
-                      const textNodes = []
                       const walker = document.createTreeWalker(
                         pagingPanel,
                         NodeFilter.SHOW_TEXT,
@@ -455,7 +454,6 @@ export default function ProductTabs() {
                   }
                   
                   translatePageSize()
-                  // Повторяем перевод каждые 100ms для обновлений
                   const interval = setInterval(translatePageSize, 100)
                   setTimeout(() => clearInterval(interval), 3000)
                 }, 100)
@@ -470,6 +468,8 @@ export default function ProductTabs() {
                 return null
               }}
               multiSortKey="ctrl"
+              suppressLoadingOverlay={true}
+              suppressPropertyNamesCheck={true}
             />
           </div>
         )}
