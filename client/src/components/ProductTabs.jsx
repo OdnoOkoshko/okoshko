@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { AgGridReact } from 'ag-grid-react'
+import GridWrapper from './GridWrapper'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
@@ -409,7 +409,7 @@ export default function ProductTabs() {
 
         {!loading && !error && data.length > 0 && (
           <div className="ag-theme-alpine p-4 bg-white shadow-md rounded-md" style={{ height: '650px' }}>
-            <AgGridReact
+            <GridWrapper
               rowData={data}
               columnDefs={columnDefs}
               defaultColDef={Object.assign({}, defaultColDef, {
