@@ -407,74 +407,73 @@ export default function ProductTabs() {
           </div>
         )}
 
-        {!loading && !error && data.length > 0 && (() => {
-          const gridOptions = {
-            rowData: data,
-            columnDefs: columnDefs,
-            defaultColDef: {
-              ...defaultColDef,
-              sortingOrder: ['asc', 'desc', null]
-            },
-            theme: "legacy",
-            localeText: localeText,
-            suppressHorizontalScroll: false,
-            suppressColumnVirtualisation: false,
-            animateRows: true,
-            rowSelection: { 
-              mode: 'multiRow',
-              checkboxes: true,
-              headerCheckbox: true
-            },
-            pagination: true,
-            paginationPageSize: 100,
-            paginationPageSizeSelector: [50, 100, 200, 500],
-            onGridReady: (params) => {
-              setGridApi(params.api)
-              setTimeout(() => {
-                params.api.sizeColumnsToFit()
-                
-                const translatePageSize = () => {
-                  const pagingPanel = document.querySelector('.ag-paging-panel')
-                  if (pagingPanel) {
-                    const walker = document.createTreeWalker(
-                      pagingPanel,
-                      NodeFilter.SHOW_TEXT,
-                      null,
-                      false
-                    )
-                    let node
-                    while (node = walker.nextNode()) {
-                      if (node.textContent.includes('Page Size')) {
-                        node.textContent = node.textContent.replace('Page Size', 'Размер страницы')
+        {!loading && !error && data.length > 0 && (
+          <div className="ag-theme-alpine p-4 bg-white shadow-md rounded-md" style={{ height: '650px' }}>
+            <AgGridReact
+              rowData={data}
+              columnDefs={columnDefs}
+              defaultColDef={Object.assign({}, defaultColDef, {
+                sortingOrder: ['asc', 'desc', null]
+              })}
+              theme="legacy"
+              localeText={localeText}
+              suppressHorizontalScroll={false}
+              suppressColumnVirtualisation={false}
+              animateRows={true}
+              rowSelection={Object.assign({}, { 
+                mode: 'multiRow',
+                checkboxes: true,
+                headerCheckbox: true
+              })}
+              pagination={true}
+              paginationPageSize={100}
+              paginationPageSizeSelector={[50, 100, 200, 500]}
+              onGridReady={(params) => {
+                setGridApi(params.api)
+                setTimeout(() => {
+                  params.api.sizeColumnsToFit()
+                  
+                  const translatePageSize = () => {
+                    const pagingPanel = document.querySelector('.ag-paging-panel')
+                    if (pagingPanel) {
+                      const walker = document.createTreeWalker(
+                        pagingPanel,
+                        NodeFilter.SHOW_TEXT,
+                        null,
+                        false
+                      )
+                      let node
+                      while (node = walker.nextNode()) {
+                        if (node.textContent.includes('Page Size')) {
+                          node.textContent = node.textContent.replace('Page Size', 'Размер страницы')
+                        }
                       }
                     }
                   }
+                  
+                  translatePageSize()
+                  const interval = setInterval(translatePageSize, 100)
+                  setTimeout(() => clearInterval(interval), 3000)
+                }, 100)
+              }}
+              rowClassRules={Object.assign({}, {
+                'ag-row-selected': (params) => params.node.selected,
+              })}
+              getRowStyle={(params) => {
+                if (params.node.selected) {
+                  return { backgroundColor: '#f0f9ff' }
                 }
-                
-                translatePageSize()
-                const interval = setInterval(translatePageSize, 100)
-                setTimeout(() => clearInterval(interval), 3000)
-              }, 100)
-            },
-            rowClassRules: {
-              'ag-row-selected': (params) => params.node.selected,
-            },
-            getRowStyle: (params) => {
-              if (params.node.selected) {
-                return { backgroundColor: '#f0f9ff' }
-              }
-              return null
-            },
-            multiSortKey: "ctrl",
-            loading: false
-          }
-          
-          return (
-            <div className="ag-theme-alpine p-4 bg-white shadow-md rounded-md" style={{ height: '650px' }}>
-              <AgGridReact {...gridOptions} />
-            </div>
-          )
-        })()}
+                return null
+              }}
+              multiSortKey="ctrl"
+              loading={false}
+              context={Object.assign({}, {
+                replitMetadata: "component-metadata",
+                componentName: "ProductTabs"
+              })}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
