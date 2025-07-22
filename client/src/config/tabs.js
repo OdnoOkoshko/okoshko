@@ -11,12 +11,12 @@ export const TAB_CONFIGS = [
   { 
     key: 'moysklad', 
     label: 'Мой Склад', 
-    gradient: 'from-cyan-400 via-blue-400 to-blue-600' // Ярче и с переходом
+    gradient: 'from-cyan-300 via-sky-400 to-blue-400' // Более голубой
   },
   { 
     key: 'ozon', 
     label: 'Озон', 
-    gradient: 'from-blue-500 via-sky-400 to-blue-700' // Фирменный синий Ozon
+    gradient: 'from-blue-700 via-blue-600 to-indigo-800' // Более насыщенно синий
   },
   { 
     key: 'wb', 
