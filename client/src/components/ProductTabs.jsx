@@ -1,20 +1,20 @@
 // ProductTabs.jsx - основной компонент с логикой управления данными
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { supabase } from '../lib/supabaseClient'
 import { FiSettings, FiRotateCcw } from 'react-icons/fi'
 import SearchBar from './SearchBar'
 import ProductTable from './ProductTable'
 import PaginationControls from './PaginationControls'
 import { usePersistentState } from '../../../shared/hooks/usePersistentState'
 import { usePersistentStateWithKey } from '../../../shared/hooks/usePersistentStateWithKey'
-import { saveToStorage, loadFromStorage, removeFromStorage } from '../../../shared/storage.ts'
+import { removeFromStorage } from '../../../shared/storage.ts'
+import { useTabData } from '../hooks/useTabData.js'
+import { TAB_CONFIGS } from '../config/tabs.js'
+import { sortData } from '../utils/sortData.js'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
-  const [tabData, setTabData] = useState({})
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const { tabData, loading, error, fetchTabData } = useTabData()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [hiddenColumns, setHiddenColumns] = usePersistentState('okoshko_hiddenColumns', [])
@@ -25,107 +25,9 @@ export default function ProductTabs() {
   const buttonRef = useRef(null)
   const itemsPerPage = 100
 
-  // Маппинг вкладок на таблицы в БД
-  const tableMapping = {
-    moysklad: 'products_moysklad',
-    ozon: 'products_ozon',
-    wb: 'products_wb',
-    yandex: 'products_yandex'
-  }
-
-  // Конфигурация вкладок
-  const tabConfigs = [
-    { 
-      key: 'moysklad', 
-      label: 'Мой Склад', 
-      gradient: 'from-cyan-400 to-blue-500' 
-    },
-    { 
-      key: 'ozon', 
-      label: 'Озон', 
-      gradient: 'from-blue-500 to-blue-600' 
-    },
-    { 
-      key: 'wb', 
-      label: 'Вайлдбериз', 
-      gradient: 'from-purple-500 to-purple-600' 
-    },
-    { 
-      key: 'yandex', 
-      label: 'Яндекс Маркет', 
-      gradient: 'from-yellow-400 to-orange-500' 
-    }
-  ]
-
-  // Загрузка данных из Supabase
-  const loadData = async (tab) => {
-    const tableName = tableMapping[tab]
-    let allData = []
-    let from = 0
-    const chunkSize = 1000
-    
-    try {
-      while (true) {
-        const { data: chunk, error: chunkError } = await supabase
-          .from(tableName)
-          .select('*')
-          .range(from, from + chunkSize - 1)
-        
-        if (chunkError) {
-          throw new Error('Ошибка при загрузке данных')
-        }
-        
-        if (!chunk || chunk.length === 0) break
-        
-        allData = [...allData, ...chunk]
-        if (chunk.length < chunkSize) break
-        from += chunkSize
-      }
-      
-      return allData
-    } catch (error) {
-      throw new Error('Ошибка при загрузке данных')
-    }
-  }
-
-  // Загрузка данных для вкладки при первом открытии
+  // Загрузка данных при переключении вкладки
   useEffect(() => {
-    if (!tabData[activeTab]) {
-      let isCurrent = true
-
-      const fetchData = async () => {
-        setLoading(true)
-        setError(null)
-        
-        try {
-          const data = await loadData(activeTab)
-          if (!isCurrent) return
-          
-          setTabData(prev => ({
-            ...prev,
-            [activeTab]: data
-          }))
-        } catch (err) {
-          if (!isCurrent) return
-          
-          setError(err.message)
-          setTabData(prev => ({
-            ...prev,
-            [activeTab]: []
-          }))
-        } finally {
-          if (!isCurrent) return
-          
-          setLoading(false)
-        }
-      }
-
-      fetchData()
-
-      return () => {
-        isCurrent = false
-      }
-    }
+    fetchTabData(activeTab)
   }, [activeTab])
   
   useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
@@ -152,38 +54,6 @@ export default function ProductTabs() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Определение типа данных в колонке
-  const getColumnDataType = (columnKey, data) => {
-    if (!data.length) return 'string'
-    
-    const samples = data.slice(0, 10).map(item => item[columnKey]).filter(val => val != null && val !== '')
-    if (samples.length === 0) return 'string'
-    
-    // Проверяем, все ли значения числа
-    const isAllNumbers = samples.every(val => !isNaN(parseFloat(val)) && isFinite(val))
-    if (isAllNumbers) return 'number'
-    
-    return 'string'
-  }
-
-  // Функция сравнения для сортировки
-  const compareValues = (a, b, dataType, direction) => {
-    if (a == null || a === '') a = ''
-    if (b == null || b === '') b = ''
-    
-    let result = 0
-    
-    if (dataType === 'number') {
-      const numA = parseFloat(a) || 0
-      const numB = parseFloat(b) || 0
-      result = numA - numB
-    } else {
-      result = String(a).localeCompare(String(b), 'ru', { numeric: true, sensitivity: 'base' })
-    }
-    
-    return direction === 'desc' ? -result : result
-  }
-
   // Фильтрация и сортировка данных
   const processedData = useMemo(() => {
     // Сначала фильтрация
@@ -195,16 +65,9 @@ export default function ProductTabs() {
         return searchableText.includes(searchLower)
       })
     }
-    
-    // Затем сортировка
-    if (sortConfig.column && sortConfig.direction) {
-      const dataType = getColumnDataType(sortConfig.column, filtered)
-      filtered = [...filtered].sort((a, b) => 
-        compareValues(a[sortConfig.column], b[sortConfig.column], dataType, sortConfig.direction)
-      )
-    }
-    
-    return filtered
+
+    // Затем сортировка с помощью утилиты
+    return sortData(filtered, sortConfig)
   }, [fullData, searchTerm, sortConfig])
 
   const filteredData = processedData
@@ -276,7 +139,7 @@ export default function ProductTabs() {
     <div className="space-y-6">
       {/* Вкладки */}
       <div className="flex justify-center space-x-1 bg-gray-100 rounded-lg p-1">
-        {tabConfigs.map(({ key, label, gradient }) => (
+        {TAB_CONFIGS.map(({ key, label, gradient }) => (
           <button
             key={key}
             onClick={() => handleTabSwitch(key)}
