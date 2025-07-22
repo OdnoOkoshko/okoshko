@@ -1,18 +1,19 @@
-// useTabData.js - хук для управления загрузкой данных вкладок
+// useTabData.ts - хук для управления загрузкой данных вкладок
 
 import { useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
-import { TABLE_MAPPING } from '../config/tabs.js'
+import { supabase } from '../../client/src/lib/supabaseClient'
+import { TABLE_MAPPING } from '@shared/config/tabs'
+import type { UseTabDataReturn, Product, TabData, TableName } from '@shared/types'
 
-export function useTabData() {
-  const [tabData, setTabData] = useState({})
+export function useTabData(): UseTabDataReturn {
+  const [tabData, setTabData] = useState<TabData>({})
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Загрузка данных из Supabase
-  const loadData = async (tab) => {
-    const tableName = TABLE_MAPPING[tab]
-    let allData = []
+  const loadData = async (tab: string): Promise<Product[]> => {
+    const tableName: TableName = TABLE_MAPPING[tab]
+    let allData: Product[] = []
     let from = 0
     const chunkSize = 1000
     
@@ -41,7 +42,7 @@ export function useTabData() {
   }
 
   // Функция для загрузки данных конкретной вкладки
-  const fetchTabData = async (activeTab) => {
+  const fetchTabData = async (activeTab: string): Promise<void> => {
     if (tabData[activeTab]) return // Данные уже загружены
     
     let isCurrent = true
@@ -61,7 +62,7 @@ export function useTabData() {
       } catch (err) {
         if (!isCurrent) return
         
-        setError(err.message || 'Ошибка при загрузке данных')
+        setError((err as Error).message || 'Ошибка при загрузке данных')
         setTabData(prev => ({
           ...prev,
           [activeTab]: []
@@ -74,11 +75,6 @@ export function useTabData() {
     }
 
     fetchData()
-
-    // Очистка при размонтировании
-    return () => {
-      isCurrent = false
-    }
   }
 
   return {

@@ -1,13 +1,15 @@
-// tabs.js - константы конфигурации вкладок
+// tabs.ts - константы конфигурации вкладок
 
-export const TABLE_MAPPING = {
+import type { TableMapping, TabConfig } from '@shared/types'
+
+export const TABLE_MAPPING: TableMapping = {
   moysklad: 'products_moysklad',
   ozon: 'products_ozon',
   wb: 'products_wb',
   yandex: 'products_yandex'
 }
 
-export const TAB_CONFIGS = [
+export const TAB_CONFIGS: TabConfig[] = [
   { 
     key: 'moysklad', 
     label: 'Мой Склад', 

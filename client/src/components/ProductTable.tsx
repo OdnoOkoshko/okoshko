@@ -1,9 +1,40 @@
-// ProductTable.jsx - компонент таблицы товаров
+// ProductTable.tsx - компонент таблицы товаров
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
+import type { Product, SortConfig } from '@shared/types'
 
-export default function ProductTable({ 
+interface ProductTableProps {
+  columns: {
+    hiddenColumns: string[]
+    setHiddenColumns: (value: string[] | ((prev: string[]) => string[])) => void
+    columnWidths: Record<string, number>
+    setColumnWidths: (value: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void
+    activeTab: string
+  }
+  pagination: {
+    pageData: Product[]
+    fullData: Product[]
+  }
+  sorting: {
+    sortConfig: SortConfig
+    onSort: (columnKey: string) => void
+  }
+  menu: {
+    showColumnMenu: boolean
+    setShowColumnMenu: (value: boolean) => void
+    menuRef: React.RefObject<HTMLDivElement>
+    buttonRef: React.RefObject<HTMLButtonElement>
+    toggleColumn: (column: string) => void
+    itemsPerPage: number
+    setItemsPerPage: (value: number) => void
+  }
+  search: {
+    searchTerm: string
+  }
+}
+
+const ProductTable: React.FC<ProductTableProps> = ({ 
   columns,
   pagination,
   sorting,
@@ -17,11 +48,11 @@ export default function ProductTable({
   const { showColumnMenu, setShowColumnMenu, menuRef, buttonRef, toggleColumn, itemsPerPage, setItemsPerPage } = menu
   const { searchTerm = '' } = search
   const [isResizing, setIsResizing] = useState(false)
-  const [resizeColumn, setResizeColumn] = useState(null)
-  const [startX, setStartX] = useState(0)
-  const [startWidth, setStartWidth] = useState(0)
-  const [brokenImages, setBrokenImages] = useState(new Set())
-  const dragStarted = useRef(false)
+  const [resizeColumn, setResizeColumn] = useState<string | null>(null)
+  const [startX, setStartX] = useState<number>(0)
+  const [startWidth, setStartWidth] = useState<number>(0)
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
+  const dragStarted = useRef<boolean>(false)
 
   if (!pageData.length) {
     return (
@@ -42,7 +73,7 @@ export default function ProductTable({
   }, [allColumns, hiddenColumns])
 
   // Определение ширины колонки с учетом сохраненных значений - мемоизация для производительности
-  const getColumnWidth = useCallback((key) => {
+  const getColumnWidth = useCallback((key: string): string => {
     if (columnWidths[key]) {
       return `${columnWidths[key]}px`
     }
@@ -58,7 +89,7 @@ export default function ProductTable({
   }, [columnWidths])
 
   // Начало изменения ширины - мемоизация для производительности
-  const handleMouseDown = useCallback((e, columnKey) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: string) => {
     e.preventDefault()
     dragStarted.current = false // Сброс флага перетаскивания
     setIsResizing(true)
@@ -69,7 +100,7 @@ export default function ProductTable({
   }, [getColumnWidth])
 
   // Процесс изменения ширины - мемоизация для производительности
-  const handleMouseMove = useCallback((e) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing || !resizeColumn) return
     
     dragStarted.current = true // Флаг что началось перетаскивание
@@ -109,19 +140,19 @@ export default function ProductTable({
   }, [isResizing, handleMouseMove, handleMouseUp])
 
   // Проверка типа поля - мемоизация для производительности
-  const isImageField = (key) => {
+  const isImageField = (key: string): boolean => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
   }
 
-  const isLinkField = (key) => {
+  const isLinkField = (key: string): boolean => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('link') || keyLower.includes('url')
   }
 
   // Обработка ошибки изображения
-  const handleImageError = (imageUrl) => {
-    setBrokenImages(prev => new Set([...prev, imageUrl]))
+  const handleImageError = (imageUrl: string) => {
+    setBrokenImages(prev => new Set(Array.from(prev).concat(imageUrl)))
   }
 
   // Стили ячейки удалены - используются inline-стили
@@ -290,3 +321,5 @@ export default function ProductTable({
     </div>
   )
 }
+
+export default ProductTable

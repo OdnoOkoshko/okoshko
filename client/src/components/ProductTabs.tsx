@@ -1,30 +1,31 @@
-// ProductTabs.jsx - основной компонент с логикой управления данными
+// ProductTabs.tsx - основной компонент с логикой управления данными
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import type { SortConfig } from '@shared/types'
 import { FiSettings, FiRotateCcw } from 'react-icons/fi'
-import SearchBar from './SearchBar'
-import ProductTable from './ProductTable'
-import PaginationControls from './PaginationControls'
-import { usePersistentState } from '../../../shared/hooks/usePersistentState'
-import { usePersistentStateWithKey } from '../../../shared/hooks/usePersistentStateWithKey'
-import { removeFromStorage } from '../../../shared/storage.ts'
-import { useTabData } from '../hooks/useTabData.js'
-import { usePagination } from '../hooks/usePagination.js'
-import { useClickOutside } from '../hooks/useClickOutside.js'
-import { TAB_CONFIGS } from '../config/tabs.js'
-import { sortData } from '../utils/sortData.js'
+import SearchBar from '@components/SearchBar'
+import ProductTable from '@components/ProductTable'
+import PaginationControls from '@components/PaginationControls'
+import { usePersistentState } from '@shared/hooks/usePersistentState'
+import { usePersistentStateWithKey } from '@shared/hooks/usePersistentStateWithKey'
+import { removeFromStorage } from '@shared/storage'
+import { useTabData } from '@shared/hooks/useTabData'
+import { usePagination } from '@shared/hooks/usePagination'
+import { useClickOutside } from '@shared/hooks/useClickOutside'
+import { TAB_CONFIGS } from '@shared/config/tabs'
+import { sortData } from '@shared/utils/sortData'
 
-export default function ProductTabs() {
+const ProductTabs: React.FC = () => {
   const [activeTab, setActiveTab] = useState('moysklad')
   const { tabData, loading, error, fetchTabData } = useTabData()
   const [searchTerm, setSearchTerm] = useState('')
-  const [hiddenColumns, setHiddenColumns] = usePersistentState('okoshko_hiddenColumns', [])
-  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {}, [activeTab])
-  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `okoshko_sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
+  const [hiddenColumns, setHiddenColumns] = usePersistentState<string[]>('okoshko_hiddenColumns', [])
+  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {} as Record<string, number>, [activeTab])
+  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `okoshko_sortConfig_${activeTab}`, { column: null, direction: null } as SortConfig, [activeTab])
   const [itemsPerPage, setItemsPerPage] = usePersistentStateWithKey(() => `okoshko_${activeTab}_page_size`, 100, [activeTab])
   const [showColumnMenu, setShowColumnMenu] = useState(false)
-  const menuRef = useRef(null)
-  const buttonRef = useRef(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Загрузка данных при переключении вкладки
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function ProductTabs() {
   }, [activeTab, searchTerm])
   
   // Переключение видимости колонки
-  const toggleColumn = (column) => {
+  const toggleColumn = (column: string) => {
     setHiddenColumns(prev =>
       prev.includes(column)
         ? prev.filter(c => c !== column)
@@ -71,8 +72,8 @@ export default function ProductTabs() {
   }
 
   // Функция сортировки
-  const handleSort = (columnKey) => {
-    let newDirection = 'asc'
+  const handleSort = (columnKey: string) => {
+    let newDirection: 'asc' | 'desc' | null = 'asc'
     
     if (sortConfig.column === columnKey) {
       if (sortConfig.direction === 'asc') {
@@ -82,7 +83,7 @@ export default function ProductTabs() {
       }
     }
     
-    const newSortConfig = { 
+    const newSortConfig: SortConfig = { 
       column: newDirection ? columnKey : null, 
       direction: newDirection 
     }
@@ -106,7 +107,7 @@ export default function ProductTabs() {
   }
 
   // Функция переключения вкладки
-  const handleTabSwitch = (tabKey) => {
+  const handleTabSwitch = (tabKey: string) => {
     setActiveTab(tabKey)
     // Если вкладка еще не загружена, данные загрузятся в useEffect
   }
@@ -248,3 +249,5 @@ export default function ProductTabs() {
     </div>
   )
 }
+
+export default ProductTabs

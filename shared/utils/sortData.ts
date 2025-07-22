@@ -1,6 +1,8 @@
-// sortData.js - утилиты для сортировки данных
+// sortData.ts - утилиты для сортировки данных
 
-export function sortData(data, sortConfig) {
+import type { Product, SortConfig } from '@shared/types'
+
+export function sortData(data: Product[], sortConfig: SortConfig): Product[] {
   if (!sortConfig.column || !sortConfig.direction) {
     return data
   }

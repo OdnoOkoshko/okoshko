@@ -1,15 +1,12 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
+// routes.ts - минимальный backend endpoint
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+import { Router } from 'express'
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+const router = Router()
 
-  const httpServer = createServer(app);
+// Минимальный эндпоинт для проверки работы сервера
+router.get('/api/ping', (req, res) => {
+  res.send('pong')
+})
 
-  return httpServer;
-}
+export default router

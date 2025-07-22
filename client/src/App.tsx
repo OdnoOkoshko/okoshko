@@ -1,7 +1,8 @@
-import Navbar from './components/Navbar'
-import ProductTabs from './components/ProductTabs'
+import Navbar from '@components/Navbar'
+import ProductTabs from '@components/ProductTabs'
+import React from 'react'
 
-export default function App() {
+const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -11,3 +12,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App

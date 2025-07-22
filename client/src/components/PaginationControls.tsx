@@ -1,12 +1,22 @@
-// PaginationControls.jsx - компонент навигации по страницам
+// PaginationControls.tsx - компонент навигации по страницам
 
-export default function PaginationControls({ 
+import React from 'react'
+
+interface PaginationControlsProps {
+  currentPage: number
+  totalPages: number
+  goToPage: (page: number) => void
+  goToPrevPage: () => void
+  goToNextPage: () => void
+}
+
+const PaginationControls: React.FC<PaginationControlsProps> = ({ 
   currentPage, 
   totalPages, 
   goToPage, 
   goToPrevPage, 
   goToNextPage 
-}) {
+}) => {
   if (totalPages <= 1) return null
 
   return (
@@ -77,3 +87,5 @@ export default function PaginationControls({
     </div>
   )
 }
+
+export default PaginationControls
