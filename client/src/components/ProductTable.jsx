@@ -108,21 +108,28 @@ export default function ProductTable({
     }
   }, [isResizing, handleMouseMove, handleMouseUp])
 
-  // Проверка типа поля - мемоизация для производительности
-  const isImageField = (key) => {
+  // Проверка типа поля
+  const isImageField = useCallback((key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
-  }
+  }, [])
 
-  const isLinkField = (key) => {
+  const isLinkField = useCallback((key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('link') || keyLower.includes('url')
-  }
+  }, [])
 
   // Обработка ошибки изображения
-  const handleImageError = (imageUrl) => {
+  const handleImageError = useCallback((imageUrl) => {
     setBrokenImages(prev => new Set([...prev, imageUrl]))
-  }
+  }, [])
+
+  // Обработка клика по заголовку
+  const handleHeaderClick = useCallback((key) => {
+    if (!dragStarted.current) {
+      onSort(key)
+    }
+  }, [onSort])
 
   // Стили ячейки удалены - используются inline-стили
 
@@ -190,10 +197,7 @@ export default function ProductTable({
                     key={key} 
                     className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
                     style={{ width }}
-                    onClick={() => {
-                      if (dragStarted.current) return // Игнорируем клик после перетаскивания
-                      onSort(key)
-                    }}
+                    onClick={() => handleHeaderClick(key)}
                     title="Нажмите для сортировки"
                   >
                     <div className="flex items-center justify-between pr-2">
