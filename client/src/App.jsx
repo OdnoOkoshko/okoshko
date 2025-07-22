@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import Navbar from './components/Navbar'
 import ProductTabs from './components/ProductTabs'
+import LoginForm from './components/LoginForm'
 
 function ErrorBoundary({ children }) {
   const [error, setError] = useState(null)
@@ -41,11 +42,25 @@ class ErrorCatcher extends React.Component {
 }
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('okoshko_token'))
+
+  const handleLogout = () => {
+    localStorage.removeItem('okoshko_token')
+    setIsLoggedIn(false)
+  }
+
+  if (!isLoggedIn) {
+    return <LoginForm onLogin={() => setIsLoggedIn(true)} />
+  }
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <div className="max-w-7xl mx-auto p-8">
+          <div className="flex justify-end mb-4">
+            <button onClick={handleLogout} className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">Выйти</button>
+          </div>
           <ProductTabs />
         </div>
       </div>
