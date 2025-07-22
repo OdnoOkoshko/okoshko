@@ -88,6 +88,10 @@ export default function ProductTable({
       setIsResizing(false)
       setResizeColumn(null)
       document.body.style.cursor = 'default'
+      // Небольшая задержка чтобы сброс произошел после onClick
+      setTimeout(() => {
+        dragStarted.current = false
+      }, 50)
     }
   }, [isResizing])
 
