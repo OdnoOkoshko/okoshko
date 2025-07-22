@@ -1,5 +1,5 @@
-import Navbar from '@components/Navbar'
-import ProductTabs from '@components/ProductTabs'
+import Navbar from '@/components/Navbar'
+import ProductTabs from '@/components/ProductTabs'
 import React from 'react'
 
 const App: React.FC = () => {

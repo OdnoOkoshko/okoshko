@@ -40,7 +40,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
   sorting,
   menu,
   search
-}) {
+}) => {
   // Деструктуризация пропсов
   const { hiddenColumns, setHiddenColumns, columnWidths, setColumnWidths, activeTab } = columns
   const { pageData, fullData } = pagination

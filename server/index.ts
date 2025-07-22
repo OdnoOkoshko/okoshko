@@ -1,7 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
-// import { registerRoutes } from "./routes"; // Упрощен согласно рефакторингу
-import routes from "./routes";
-// import { setupVite, serveStatic, log } from "./vite"; // Убрано согласно рефакторингу архитектуры
+import routes from "./routes.js";
+import { createServer } from "http";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(express.json());
@@ -37,8 +40,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Упрощенная конфигурация сервера согласно рефакторингу архитектуры
+// Подключение маршрутов API
 app.use(routes);
+
+// Обслуживание собранного TypeScript приложения
+app.use(express.static(join(__dirname, '../dist/public')));
+
+// SPA fallback - все маршруты ведут к React приложению
+app.get('*', (req: Request, res: Response) => {
+  if (!req.url.startsWith('/api')) {
+    res.sendFile(join(__dirname, '../dist/public/index.html'));
+  }
+});
 
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   const status = err.status || err.statusCode || 500;
@@ -46,7 +59,12 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message });
 });
 
-const port = parseInt(process.env.PORT || '5000', 10);
-app.listen(port, "0.0.0.0", () => {
+// Добавляем MIME типы для TypeScript модулей
+express.static.mime.define({'application/javascript': ['ts', 'tsx']});
+
+const server = createServer(app);
+const port = parseInt(process.env.PORT || '80', 10);
+
+server.listen(port, "0.0.0.0", () => {
   console.log(`Server running on port ${port}`);
 });
