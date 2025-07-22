@@ -58,21 +58,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-100">
-        <Navbar />
+        <Navbar activePage={page} onNavigate={setPage} onLogout={handleLogout} />
         <div className="max-w-7xl mx-auto p-8">
-          <div className="flex justify-between mb-4">
-            <div className="space-x-2">
-              <button
-                className={`px-4 py-1 rounded ${page === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                onClick={() => setPage('dashboard')}
-              >Главная</button>
-              <button
-                className={`px-4 py-1 rounded ${page === 'products' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
-                onClick={() => setPage('products')}
-              >Товары</button>
-            </div>
-            <button onClick={handleLogout} className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">Выйти</button>
-          </div>
           {page === 'dashboard' && <Dashboard />}
           {page === 'products' && <ProductTabs />}
         </div>
