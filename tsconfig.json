@@ -10,7 +10,7 @@
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
@@ -18,7 +18,6 @@
     "paths": {
       "@client/*": ["client/src/*"]
     },
-    "strict": true,
-    "skipLibCheck": false
+    "strict": true
   }
 }
