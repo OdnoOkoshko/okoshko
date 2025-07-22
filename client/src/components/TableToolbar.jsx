@@ -8,13 +8,14 @@ export default function TableToolbar({
   handleResetSettings,
   setShowColumnMenu,
   showColumnMenu,
-  buttonRef
+  buttonRef,
+  children
 }) {
   return (
     <div className="grid grid-cols-3 items-center mb-3">
-      {/* Левая часть - счетчик записей (оставить для передачи через children или пропс при необходимости) */}
+      {/* Левая часть - счетчик записей */}
       <div className="text-sm text-gray-600">
-        {/* Передавайте сюда children или пропс для счетчика */}
+        {children}
       </div>
       {/* Центральная часть - поиск */}
       <div className="flex justify-center">

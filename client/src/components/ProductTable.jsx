@@ -1,12 +1,12 @@
 // ProductTable.jsx - компонент таблицы товаров
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
 import ColumnMenu from './ColumnMenu'
 import useColumnResize from '../hooks/useColumnResize'
 import { isImageField, isLinkField, useImageError } from '../utils/tableUtils'
 
-export default function ProductTable({ 
+const ProductTable = React.memo(function ProductTable({ 
   columns,
   pagination,
   sorting,
@@ -107,7 +107,7 @@ export default function ProductTable({
                   <th 
                     key={key} 
                     className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
-                    style={{ width }}
+                    style={{ width, transition: 'width 0.3s cubic-bezier(0.4,0,0.2,1)' }}
                     onClick={() => handleHeaderClick(key)}
                     title="Нажмите для сортировки"
                   >
@@ -135,7 +135,7 @@ export default function ProductTable({
           </thead>
           <tbody>
             {pageData.map((item, i) => (
-              <tr key={i} className="hover:bg-blue-50 transition-colors duration-150 h-12">
+              <tr key={i} className="hover:bg-blue-50 transition-colors duration-300 h-12 opacity-0 animate-fadeIn">
                 {visibleColumns.map((key, j) => {
                   const value = item[key]
                   const width = getColumnWidth(key)
@@ -163,6 +163,7 @@ export default function ProductTable({
                             className="w-10 h-10 object-cover rounded cursor-pointer hover:opacity-80 mx-auto"
                             onClick={() => window.open(value, '_blank', 'noopener,noreferrer')}
                             onError={() => handleImageError(value)}
+                            loading="lazy"
                           />
                         )}
                       </td>
@@ -204,4 +205,10 @@ export default function ProductTable({
       </div>
     </div>
   )
-}
+})
+
+export default ProductTable
+
+// CSS для fadeIn (можно добавить в index.css или рядом):
+// .animate-fadeIn { animation: fadeIn 0.5s ease forwards; }
+// @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
