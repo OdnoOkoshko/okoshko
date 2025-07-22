@@ -8,11 +8,11 @@ import PaginationControls from './PaginationControls'
 import { usePersistentState } from '@shared/hooks/usePersistentState'
 import { usePersistentStateWithKey } from '@shared/hooks/usePersistentStateWithKey'
 import { removeFromStorage } from '@shared/storage'
-import { useTabData } from '../hooks/useTabData.js'
-import { usePagination } from '../hooks/usePagination.js'
-import { useClickOutside } from '../hooks/useClickOutside.js'
-import { TAB_CONFIGS } from '../config/tabs.js'
-import { sortData } from '../utils/sortData.js'
+import { useTabData } from '@/hooks/useTabData'
+import { usePagination } from '@/hooks/usePagination'
+import { useClickOutside } from '@/hooks/useClickOutside'
+import { TAB_CONFIGS } from '@/config/tabs'
+import { sortData } from '@/utils/sortData'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')

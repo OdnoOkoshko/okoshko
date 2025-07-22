@@ -1,8 +1,8 @@
 // useTabData.js - хук для управления загрузкой данных вкладок
 
 import { useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
-import { TABLE_MAPPING } from '../config/tabs.js'
+import { supabase } from '@/lib/supabaseClient'
+import { TABLE_MAPPING } from '@/config/tabs'
 
 export function useTabData() {
   const [tabData, setTabData] = useState({})
