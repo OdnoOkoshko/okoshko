@@ -21,6 +21,7 @@ export default function ProductTable({
   const [startX, setStartX] = useState(0)
   const [startWidth, setStartWidth] = useState(0)
   const [brokenImages, setBrokenImages] = useState(new Set())
+  const dragStarted = useRef(false)
 
   if (!pageData.length) {
     return (
@@ -59,6 +60,7 @@ export default function ProductTable({
   // Начало изменения ширины - мемоизация для производительности
   const handleMouseDown = useCallback((e, columnKey) => {
     e.preventDefault()
+    dragStarted.current = false // Сброс флага перетаскивания
     setIsResizing(true)
     setResizeColumn(columnKey)
     setStartX(e.clientX)
@@ -70,6 +72,7 @@ export default function ProductTable({
   const handleMouseMove = useCallback((e) => {
     if (!isResizing || !resizeColumn) return
     
+    dragStarted.current = true // Флаг что началось перетаскивание
     const diff = e.clientX - startX
     const newWidth = Math.max(50, startWidth + diff) // Минимальная ширина 50px
     
@@ -183,7 +186,10 @@ export default function ProductTable({
                     key={key} 
                     className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
                     style={{ width }}
-                    onClick={() => onSort(key)}
+                    onClick={() => {
+                      if (dragStarted.current) return // Игнорируем клик после перетаскивания
+                      onSort(key)
+                    }}
                     title="Нажмите для сортировки"
                   >
                     <div className="flex items-center justify-between pr-2">
