@@ -16,7 +16,9 @@
     "baseUrl": ".",
     "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./client/src/*"]
-    }
+      "@client/*": ["client/src/*"]
+    },
+    "strict": true,
+    "skipLibCheck": false
   }
 }
