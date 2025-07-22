@@ -1,6 +1,6 @@
+import React, { useState } from 'react'
 import Navbar from './components/Navbar'
 import ProductTabs from './components/ProductTabs'
-import { useState } from 'react'
 
 function ErrorBoundary({ children }) {
   const [error, setError] = useState(null)
