@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
+import ColumnMenu from './ColumnMenu'
+import useColumnResize from '../hooks/useColumnResize'
+import { isImageField, isLinkField, useImageError } from '../utils/tableUtils'
 
 export default function ProductTable({ 
   columns,
@@ -16,12 +19,6 @@ export default function ProductTable({
   const { sortConfig, onSort } = sorting
   const { showColumnMenu, setShowColumnMenu, menuRef, buttonRef, toggleColumn, itemsPerPage, setItemsPerPage } = menu
   const { searchTerm = '' } = search
-  const [isResizing, setIsResizing] = useState(false)
-  const [resizeColumn, setResizeColumn] = useState(null)
-  const [startX, setStartX] = useState(0)
-  const [startWidth, setStartWidth] = useState(0)
-  const [brokenImages, setBrokenImages] = useState(new Set())
-  const dragStarted = useRef(false)
 
   if (!pageData.length) {
     return (
@@ -57,72 +54,23 @@ export default function ProductTable({
     return '150px'
   }, [columnWidths])
 
-  // Начало изменения ширины - мемоизация для производительности
-  const handleMouseDown = useCallback((e, columnKey) => {
-    e.preventDefault()
-    dragStarted.current = false // Сброс флага перетаскивания
-    setIsResizing(true)
-    setResizeColumn(columnKey)
-    setStartX(e.clientX)
-    setStartWidth(parseInt(getColumnWidth(columnKey)))
-    document.body.style.cursor = 'col-resize'
-  }, [getColumnWidth])
+  // Ресайз колонок через хук
+  const {
+    handleMouseDown,
+    isResizing,
+    handleMouseMove,
+    handleMouseUp,
+    resizeColumn,
+    dragStarted,
+    startX,
+    startWidth
+  } = useColumnResize({
+    getColumnWidth,
+    setColumnWidths
+  })
 
-  // Процесс изменения ширины - мемоизация для производительности
-  const handleMouseMove = useCallback((e) => {
-    if (!isResizing || !resizeColumn) return
-    
-    dragStarted.current = true // Флаг что началось перетаскивание
-    const diff = e.clientX - startX
-    const newWidth = Math.max(50, startWidth + diff) // Минимальная ширина 50px
-    
-    setColumnWidths(prev => ({
-      ...prev,
-      [resizeColumn]: newWidth
-    }))
-  }, [isResizing, resizeColumn, startX, startWidth, setColumnWidths])
-
-  // Завершение изменения ширины - мемоизация для производительности
-  const handleMouseUp = useCallback(() => {
-    if (isResizing) {
-      setIsResizing(false)
-      setResizeColumn(null)
-      document.body.style.cursor = 'default'
-      // Небольшая задержка чтобы сброс произошел после onClick
-      setTimeout(() => {
-        dragStarted.current = false
-      }, 50)
-    }
-  }, [isResizing])
-
-  // Эффекты для обработки событий мыши
-  useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
-    }
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isResizing, handleMouseMove, handleMouseUp])
-
-  // Проверка типа поля
-  const isImageField = useCallback((key) => {
-    const keyLower = key.toLowerCase()
-    return keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
-  }, [])
-
-  const isLinkField = useCallback((key) => {
-    const keyLower = key.toLowerCase()
-    return keyLower.includes('link') || keyLower.includes('url')
-  }, [])
-
-  // Обработка ошибки изображения
-  const handleImageError = useCallback((imageUrl) => {
-    setBrokenImages(prev => new Set([...prev, imageUrl]))
-  }, [])
+  // Обработка ошибок изображений через хук
+  const { brokenImages, handleImageError } = useImageError()
 
   // Обработка клика по заголовку
   const handleHeaderClick = useCallback((key) => {
@@ -138,51 +86,14 @@ export default function ProductTable({
     <div className="relative">
       {/* Выпадающее меню управления столбцами */}
       {showColumnMenu && (
-        <div
-          ref={menuRef}
-          className="absolute right-0 top-12 z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-[220px]"
-        >
-          <div className="mb-3">
-            <div className="text-sm font-medium text-gray-700">Видимые столбцы:</div>
-          </div>
-          <div className="space-y-1 max-h-60 overflow-y-auto">
-            {allColumns.map(column => (
-              <label key={column} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded text-sm">
-                <input
-                  type="checkbox"
-                  checked={!hiddenColumns.includes(column)}
-                  onChange={() => toggleColumn(column)}
-                  className="text-blue-600"
-                />
-                <span className="text-gray-700">{column}</span>
-              </label>
-            ))}
-          </div>
-
-          {/* Разделитель */}
-          <div className="border-t border-gray-200 my-3"></div>
-
-          {/* Выбор количества строк */}
-          <div className="mb-2">
-            <div className="text-sm font-medium text-gray-700 mb-2">Количество строк:</div>
-            <div className="flex gap-3">
-              {[50, 100, 200].map(size => (
-                <label key={size} className="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="pageSize"
-                    value={size}
-                    checked={itemsPerPage === size}
-                    onChange={() => setItemsPerPage(size)}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm text-gray-700">{size}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-        </div>
+        <ColumnMenu
+          allColumns={allColumns}
+          hiddenColumns={hiddenColumns}
+          toggleColumn={toggleColumn}
+          itemsPerPage={itemsPerPage}
+          setItemsPerPage={setItemsPerPage}
+          menuRef={menuRef}
+        />
       )}
 
       <div className="overflow-x-auto">

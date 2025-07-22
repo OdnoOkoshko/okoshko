@@ -5,6 +5,7 @@ import { FiSettings, FiRotateCcw } from 'react-icons/fi'
 import SearchBar from './SearchBar'
 import ProductTable from './ProductTable'
 import PaginationControls from './PaginationControls'
+import TableToolbar from './TableToolbar'
 import { usePersistentState } from '../shared/hooks/usePersistentState'
 import { usePersistentStateWithKey } from '../shared/hooks/usePersistentStateWithKey'
 import { removeFromStorage } from '../shared/storage'
@@ -160,8 +161,14 @@ export default function ProductTabs() {
         {!loading && !error && fullData.length > 0 && (
           <div className="bg-white p-4 rounded-lg shadow-md">
             {/* Компактная панель управления */}
-            <div className="grid grid-cols-3 items-center mb-3">
-              {/* Левая часть - счетчик записей */}
+            <TableToolbar
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              handleResetSettings={handleResetSettings}
+              setShowColumnMenu={setShowColumnMenu}
+              showColumnMenu={showColumnMenu}
+              buttonRef={buttonRef}
+            >
               <div className="text-sm text-gray-600">
                 {searchTerm ? (
                   <>Найдено {processedData.length} из {fullData.length} • Показано {pagination.startItem}–{pagination.endItem}</>
@@ -169,33 +176,7 @@ export default function ProductTabs() {
                   <>Показано {pagination.startItem}–{pagination.endItem} из {pagination.totalCount}</>
                 )}
               </div>
-              
-              {/* Центральная часть - поиск */}
-              <div className="flex justify-center">
-                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-              </div>
-              
-              {/* Правая часть - кнопки управления */}
-              <div className="flex justify-end items-center space-x-1">
-                <button
-                  onClick={handleResetSettings}
-                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
-                  title="Сбросить настройки таблицы"
-                >
-                  <FiRotateCcw size={18} />
-                </button>
-                <div className="relative">
-                  <button
-                    ref={buttonRef}
-                    onClick={() => setShowColumnMenu(!showColumnMenu)}
-                    className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-                    title="Управление столбцами"
-                  >
-                    <FiSettings size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
+            </TableToolbar>
             
             {pagination.pageData.length === 0 && searchTerm.trim() !== '' ? (
               <div className="text-center py-12 text-gray-500">
