@@ -59,7 +59,7 @@ export default function ProductTabs() {
   // Обновление страницы при изменении поиска или вкладки
   useEffect(() => {
     pagination.setCurrentPage(1)
-  }, [activeTab, searchTerm])
+  }, [activeTab, searchTerm, pagination.setCurrentPage])
   
   // Переключение видимости колонки
   const toggleColumn = (column) => {

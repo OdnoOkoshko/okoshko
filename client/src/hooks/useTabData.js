@@ -1,6 +1,6 @@
 // useTabData.js - хук для управления загрузкой данных вкладок
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { TABLE_MAPPING } from '@/config/tabs'
 
@@ -36,50 +36,33 @@ export function useTabData() {
       
       return allData
     } catch (error) {
-      throw new Error('Ошибка при загрузке данных')
+      throw error
     }
   }
 
   // Функция для загрузки данных конкретной вкладки
-  const fetchTabData = async (activeTab) => {
+  const fetchTabData = useCallback(async (activeTab) => {
     if (tabData[activeTab]) return // Данные уже загружены
     
-    let isCurrent = true
-
-    const fetchData = async () => {
-      setLoading(true)
-      setError(null)
-      
-      try {
-        const data = await loadData(activeTab)
-        if (!isCurrent) return
-        
-        setTabData(prev => ({
-          ...prev,
-          [activeTab]: data
-        }))
-      } catch (err) {
-        if (!isCurrent) return
-        
-        setError(err.message || 'Ошибка при загрузке данных')
-        setTabData(prev => ({
-          ...prev,
-          [activeTab]: []
-        }))
-      } finally {
-        if (isCurrent) {
-          setLoading(false)
-        }
-      }
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const data = await loadData(activeTab)
+      setTabData(prev => ({
+        ...prev,
+        [activeTab]: data
+      }))
+    } catch (err) {
+      setError(err.message)
+      setTabData(prev => ({
+        ...prev,
+        [activeTab]: []
+      }))
+    } finally {
+      setLoading(false)
     }
-
-    fetchData()
-
-    // Очистка при размонтировании
-    return () => {
-      isCurrent = false
-    }
-  }
+  }, [tabData])
 
   return {
     tabData,
