@@ -14,7 +14,7 @@ export default function ProductTable({
   const { hiddenColumns, setHiddenColumns, columnWidths, setColumnWidths, activeTab } = columns
   const { pageData, fullData } = pagination
   const { sortConfig, onSort } = sorting
-  const { showColumnMenu, setShowColumnMenu, menuRef, buttonRef, toggleColumn } = menu
+  const { showColumnMenu, setShowColumnMenu, menuRef, buttonRef, toggleColumn, itemsPerPage, setItemsPerPage } = menu
   const { searchTerm = '' } = search
   const [isResizing, setIsResizing] = useState(false)
   const [resizeColumn, setResizeColumn] = useState(null)
@@ -143,6 +143,29 @@ export default function ProductTable({
                 <span className="text-gray-700">{column}</span>
               </label>
             ))}
+          </div>
+
+          {/* Разделитель */}
+          <div className="border-t border-gray-200 my-3"></div>
+
+          {/* Выбор количества строк */}
+          <div className="mb-2">
+            <div className="text-sm font-medium text-gray-700 mb-2">Количество строк:</div>
+            <div className="flex gap-3">
+              {[50, 100, 200].map(size => (
+                <label key={size} className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="pageSize"
+                    value={size}
+                    checked={itemsPerPage === size}
+                    onChange={() => setItemsPerPage(size)}
+                    className="text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">{size}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
         </div>

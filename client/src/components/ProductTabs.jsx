@@ -21,6 +21,7 @@ export default function ProductTabs() {
   const [hiddenColumns, setHiddenColumns] = usePersistentState('okoshko_hiddenColumns', [])
   const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {}, [activeTab])
   const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `okoshko_sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
+  const [itemsPerPage, setItemsPerPage] = usePersistentStateWithKey(() => `okoshko_${activeTab}_page_size`, 100, [activeTab])
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
@@ -53,7 +54,7 @@ export default function ProductTabs() {
   }, [fullData, searchTerm, sortConfig])
 
   // Пагинация с помощью хука
-  const pagination = usePagination(processedData)
+  const pagination = usePagination(processedData, itemsPerPage)
   
   // Обновление страницы при изменении поиска или вкладки
   useEffect(() => {
@@ -94,11 +95,13 @@ export default function ProductTabs() {
     // Удаляем настройки из localStorage
     removeFromStorage(`okoshko_columnWidths_${activeTab}`)
     removeFromStorage(`okoshko_sortConfig_${activeTab}`)
+    removeFromStorage(`okoshko_${activeTab}_page_size`)
     removeFromStorage('okoshko_hiddenColumns')
     
     // Сбрасываем состояния к дефолтным
     setColumnWidths({})
     setSortConfig({ column: null, direction: null })
+    setItemsPerPage(100)
     setHiddenColumns([])
   }
 
@@ -222,7 +225,9 @@ export default function ProductTabs() {
                   setShowColumnMenu,
                   menuRef,
                   buttonRef,
-                  toggleColumn
+                  toggleColumn,
+                  itemsPerPage,
+                  setItemsPerPage
                 }}
                 search={{
                   searchTerm
