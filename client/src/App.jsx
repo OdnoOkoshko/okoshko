@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Navbar from './components/Navbar'
 import ProductTabs from './components/ProductTabs'
 import LoginForm from './components/LoginForm'
+import Dashboard from './components/Dashboard'
 
 function ErrorBoundary({ children }) {
   const [error, setError] = useState(null)
@@ -43,6 +44,7 @@ class ErrorCatcher extends React.Component {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('okoshko_token'))
+  const [page, setPage] = useState('dashboard')
 
   const handleLogout = () => {
     localStorage.removeItem('okoshko_token')
@@ -58,10 +60,21 @@ export default function App() {
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <div className="max-w-7xl mx-auto p-8">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between mb-4">
+            <div className="space-x-2">
+              <button
+                className={`px-4 py-1 rounded ${page === 'dashboard' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                onClick={() => setPage('dashboard')}
+              >Главная</button>
+              <button
+                className={`px-4 py-1 rounded ${page === 'products' ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                onClick={() => setPage('products')}
+              >Товары</button>
+            </div>
             <button onClick={handleLogout} className="px-4 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm">Выйти</button>
           </div>
-          <ProductTabs />
+          {page === 'dashboard' && <Dashboard />}
+          {page === 'products' && <ProductTabs />}
         </div>
       </div>
     </ErrorBoundary>
