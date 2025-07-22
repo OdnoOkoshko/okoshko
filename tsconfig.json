@@ -1,6 +1,6 @@
 {
   "include": ["client/src/**/*", "server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "**/shared/hooks/**"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
 
   "compilerOptions": {
     "incremental": false,
