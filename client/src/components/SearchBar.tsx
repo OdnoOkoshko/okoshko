@@ -33,7 +33,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, setSearchTerm }) => {
         placeholder="Поиск..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="border border-gray-300 pl-9 pr-3 py-2 rounded text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="border rounded px-2 py-1 text-sm w-[300px] pl-9 pr-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
     </div>
   )

@@ -209,9 +209,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="border-collapse border border-gray-300 table-fixed w-full">
-          <thead>
+      <div className="overflow-auto shadow rounded">
+        <table className="table-fixed w-full text-sm border-collapse">
+          <thead className="bg-gray-100">
             <tr className="h-12">
               {visibleColumns.map(key => {
                 const width = getColumnWidth(key)
@@ -219,7 +219,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                 return (
                   <th 
                     key={key} 
-                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
+                    className="px-3 py-2 text-left font-semibold truncate relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
                     style={{ width }}
                     onClick={() => {
                       if (dragStarted.current) return // Игнорируем клик после перетаскивания
@@ -262,7 +262,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-2 border text-xs text-center align-middle h-12"
+                        className="px-3 py-2 truncate border-t text-xs text-center align-middle h-12"
                         style={{ width }}
                       >
                         {isImageBroken ? (
@@ -289,7 +289,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-2 border text-xs text-center align-middle h-12"
+                        className="px-3 py-2 truncate border-t text-xs text-center align-middle h-12"
                         style={{ width }}
                       >
                         <button 
@@ -305,7 +305,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   return (
                     <td 
                       key={j} 
-                      className="px-3 py-2 border text-xs align-middle h-12 overflow-hidden whitespace-nowrap text-ellipsis"
+                      className="px-3 py-2 truncate border-t text-xs align-middle h-12 overflow-hidden whitespace-nowrap text-ellipsis"
                       style={{ width }}
                       title={String(value)}
                     >

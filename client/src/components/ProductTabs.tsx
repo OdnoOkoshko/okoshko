@@ -159,25 +159,20 @@ const ProductTabs: React.FC = () => {
         )}
 
         {!loading && !error && fullData.length > 0 && (
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            {/* Компактная панель управления */}
-            <div className="grid grid-cols-3 items-center mb-3">
-              {/* Левая часть - счетчик записей */}
-              <div className="text-sm text-gray-600">
-                {searchTerm ? (
-                  <>Найдено {processedData.length} из {fullData.length} • Показано {pagination.startItem}–{pagination.endItem}</>
-                ) : (
-                  <>Показано {pagination.startItem}–{pagination.endItem} из {pagination.totalCount}</>
-                )}
-              </div>
-              
-              {/* Центральная часть - поиск */}
-              <div className="flex justify-center">
+          <div className="p-4">
+            {/* Блок поиска и шестерёнки согласно ТЗ */}
+            <div className="flex justify-between items-center px-4 py-2 mb-2">
+              <div className="flex items-center gap-4">
                 <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                <div className="text-sm text-gray-600">
+                  {searchTerm ? (
+                    <>Найдено {processedData.length} из {fullData.length} • Показано {pagination.startItem}–{pagination.endItem}</>
+                  ) : (
+                    <>Показано {pagination.startItem}–{pagination.endItem} из {pagination.totalCount}</>
+                  )}
+                </div>
               </div>
-              
-              {/* Правая часть - кнопки управления */}
-              <div className="flex justify-end items-center space-x-1">
+              <div className="flex items-center space-x-1">
                 <button
                   onClick={handleResetSettings}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"

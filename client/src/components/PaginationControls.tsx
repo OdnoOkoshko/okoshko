@@ -20,11 +20,11 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
   if (totalPages <= 1) return null
 
   return (
-    <div className="mt-4 flex items-center justify-center gap-2">
+    <div className="flex justify-end items-center gap-2 mt-4">
       <button
         onClick={goToPrevPage}
         disabled={currentPage === 1}
-        className={`px-3 py-1 text-sm border rounded ${
+        className={`px-2 py-1 text-sm border rounded ${
           currentPage === 1 
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
             : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -50,7 +50,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
           <button
             key={pageNum}
             onClick={() => goToPage(pageNum)}
-            className={`px-3 py-1 text-sm border rounded ${
+            className={`px-2 py-1 text-sm border rounded ${
               pageNum === currentPage
                 ? 'bg-blue-500 text-white'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
@@ -76,7 +76,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
       <button
         onClick={goToNextPage}
         disabled={currentPage === totalPages}
-        className={`px-3 py-1 text-sm border rounded ${
+        className={`px-2 py-1 text-sm border rounded ${
           currentPage === totalPages 
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
             : 'bg-white text-gray-700 hover:bg-gray-50'
