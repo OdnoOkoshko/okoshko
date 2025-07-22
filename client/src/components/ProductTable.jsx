@@ -3,7 +3,19 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
 
-export default function ProductTable({ pageData, fullData, showColumnMenu, setShowColumnMenu, hiddenColumns, setHiddenColumns, menuRef, buttonRef, toggleColumn, searchTerm = '', columnWidths, setColumnWidths, activeTab, sortConfig, onSort }) {
+export default function ProductTable({ 
+  columns,
+  pagination,
+  sorting,
+  menu,
+  search
+}) {
+  // Деструктуризация пропсов
+  const { hiddenColumns, setHiddenColumns, columnWidths, setColumnWidths, activeTab } = columns
+  const { pageData, fullData } = pagination
+  const { sortConfig, onSort } = sorting
+  const { showColumnMenu, setShowColumnMenu, menuRef, buttonRef, toggleColumn } = menu
+  const { searchTerm = '' } = search
   const [isResizing, setIsResizing] = useState(false)
   const [resizeColumn, setResizeColumn] = useState(null)
   const [startX, setStartX] = useState(0)

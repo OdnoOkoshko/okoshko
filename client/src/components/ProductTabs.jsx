@@ -9,13 +9,14 @@ import { usePersistentState } from '../../../shared/hooks/usePersistentState'
 import { usePersistentStateWithKey } from '../../../shared/hooks/usePersistentStateWithKey'
 import { removeFromStorage } from '../../../shared/storage.ts'
 import { useTabData } from '../hooks/useTabData.js'
+import { usePagination } from '../hooks/usePagination.js'
+import { useClickOutside } from '../hooks/useClickOutside.js'
 import { TAB_CONFIGS } from '../config/tabs.js'
 import { sortData } from '../utils/sortData.js'
 
 export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
   const { tabData, loading, error, fetchTabData } = useTabData()
-  const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [hiddenColumns, setHiddenColumns] = usePersistentState('okoshko_hiddenColumns', [])
   const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {}, [activeTab])
@@ -23,36 +24,17 @@ export default function ProductTabs() {
   const [showColumnMenu, setShowColumnMenu] = useState(false)
   const menuRef = useRef(null)
   const buttonRef = useRef(null)
-  const itemsPerPage = 100
 
   // Загрузка данных при переключении вкладки
   useEffect(() => {
     fetchTabData(activeTab)
   }, [activeTab])
-  
-  useEffect(() => setCurrentPage(1), [activeTab, searchTerm])
 
   // Получение текущих данных для активной вкладки
   const fullData = tabData[activeTab] || []
-  
-
 
   // Закрытие меню при клике вне его
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
-        setShowColumnMenu(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  useClickOutside([menuRef, buttonRef], () => setShowColumnMenu(false))
 
   // Фильтрация и сортировка данных
   const processedData = useMemo(() => {
@@ -70,22 +52,13 @@ export default function ProductTabs() {
     return sortData(filtered, sortConfig)
   }, [fullData, searchTerm, sortConfig])
 
-  const filteredData = processedData
-
-  const totalCount = filteredData.length
-  const totalPages = Math.ceil(totalCount / itemsPerPage)
-  const start = (currentPage - 1) * itemsPerPage
-  const end = currentPage * itemsPerPage
-  const pageData = filteredData.slice(start, end)
-  const startItem = start + 1
-  const endItem = Math.min(end, totalCount)
-
-  // Функции навигации
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page)
-  }
-  const goToPrevPage = () => goToPage(currentPage - 1)
-  const goToNextPage = () => goToPage(currentPage + 1)
+  // Пагинация с помощью хука
+  const pagination = usePagination(processedData)
+  
+  // Обновление страницы при изменении поиска или вкладки
+  useEffect(() => {
+    pagination.setCurrentPage(1)
+  }, [activeTab, searchTerm])
   
   // Переключение видимости колонки
   const toggleColumn = (column) => {
@@ -169,10 +142,7 @@ export default function ProductTabs() {
         )}
 
         {error && (
-          <div className="text-red-600 p-8 text-center bg-red-50 border border-red-200 rounded">
-            <div className="text-lg font-medium mb-2">Не удалось загрузить данные</div>
-            <div className="text-sm text-red-500">Попробуйте обновить страницу или выберите другую вкладку</div>
-          </div>
+          <p className="text-red-500">Ошибка загрузки данных</p>
         )}
 
         {!loading && !error && fullData.length === 0 && (
@@ -191,9 +161,9 @@ export default function ProductTabs() {
               {/* Левая часть - счетчик записей */}
               <div className="text-sm text-gray-600">
                 {searchTerm ? (
-                  <>Найдено {filteredData.length} из {fullData.length} • Показано {startItem}–{endItem}</>
+                  <>Найдено {processedData.length} из {fullData.length} • Показано {pagination.startItem}–{pagination.endItem}</>
                 ) : (
-                  <>Показано {startItem}–{endItem} из {totalCount}</>
+                  <>Показано {pagination.startItem}–{pagination.endItem} из {pagination.totalCount}</>
                 )}
               </div>
               
@@ -224,7 +194,7 @@ export default function ProductTabs() {
               </div>
             </div>
             
-            {pageData.length === 0 && searchTerm.trim() !== '' ? (
+            {pagination.pageData.length === 0 && searchTerm.trim() !== '' ? (
               <div className="text-center py-12 text-gray-500">
                 <div className="text-4xl mb-4">🔍</div>
                 <div className="text-lg font-medium">Нет совпадений</div>
@@ -232,30 +202,40 @@ export default function ProductTabs() {
               </div>
             ) : (
               <ProductTable 
-                pageData={pageData} 
-                fullData={fullData}
-                showColumnMenu={showColumnMenu}
-                setShowColumnMenu={setShowColumnMenu}
-                hiddenColumns={hiddenColumns}
-                setHiddenColumns={setHiddenColumns}
-                menuRef={menuRef}
-                buttonRef={buttonRef}
-                toggleColumn={toggleColumn}
-                searchTerm={searchTerm}
-                columnWidths={columnWidths}
-                setColumnWidths={setColumnWidths}
-                activeTab={activeTab}
-                sortConfig={sortConfig}
-                onSort={handleSort}
+                columns={{
+                  hiddenColumns,
+                  setHiddenColumns,
+                  columnWidths,
+                  setColumnWidths,
+                  activeTab
+                }}
+                pagination={{
+                  pageData: pagination.pageData,
+                  fullData
+                }}
+                sorting={{
+                  sortConfig,
+                  onSort: handleSort
+                }}
+                menu={{
+                  showColumnMenu,
+                  setShowColumnMenu,
+                  menuRef,
+                  buttonRef,
+                  toggleColumn
+                }}
+                search={{
+                  searchTerm
+                }}
               />
             )}
             
             <PaginationControls 
-              currentPage={currentPage}
-              totalPages={totalPages}
-              goToPage={goToPage}
-              goToPrevPage={goToPrevPage}
-              goToNextPage={goToNextPage}
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              goToPage={pagination.goToPage}
+              goToPrevPage={pagination.goToPrevPage}
+              goToNextPage={pagination.goToNextPage}
             />
           </div>
         )}
