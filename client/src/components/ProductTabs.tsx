@@ -8,7 +8,7 @@ import ProductTable from '@/components/ProductTable'
 import PaginationControls from '@/components/PaginationControls'
 import { usePersistentState } from '@shared/hooks/usePersistentState'
 import { usePersistentStateWithKey } from '@shared/hooks/usePersistentStateWithKey'
-import { removeFromStorage } from '@shared/storage'
+
 import { useTabData } from '@shared/hooks/useTabData'
 import { usePagination } from '@shared/hooks/usePagination'
 import { useClickOutside } from '@shared/hooks/useClickOutside'
@@ -94,10 +94,10 @@ const ProductTabs: React.FC = () => {
   // Функция сброса настроек таблицы
   const handleResetSettings = () => {
     // Удаляем настройки из localStorage
-    removeFromStorage(`okoshko_columnWidths_${activeTab}`)
-    removeFromStorage(`okoshko_sortConfig_${activeTab}`)
-    removeFromStorage(`okoshko_${activeTab}_page_size`)
-    removeFromStorage('okoshko_hiddenColumns')
+    localStorage.removeItem(`okoshko_columnWidths_${activeTab}`)
+    localStorage.removeItem(`okoshko_sortConfig_${activeTab}`)
+    localStorage.removeItem(`okoshko_${activeTab}_page_size`)
+    localStorage.removeItem('okoshko_hiddenColumns')
     
     // Сбрасываем состояния к дефолтным
     setColumnWidths({})
