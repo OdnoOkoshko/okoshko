@@ -1,46 +1,15 @@
-// ProductTable.tsx - компонент таблицы товаров
+// ProductTable.jsx - компонент таблицы товаров
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { FiSettings } from 'react-icons/fi'
-import type { Product, SortConfig } from '@shared/types'
 
-interface ProductTableProps {
-  columns: {
-    hiddenColumns: string[]
-    setHiddenColumns: (value: string[] | ((prev: string[]) => string[])) => void
-    columnWidths: Record<string, number>
-    setColumnWidths: (value: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => void
-    activeTab: string
-  }
-  pagination: {
-    pageData: Product[]
-    fullData: Product[]
-  }
-  sorting: {
-    sortConfig: SortConfig
-    onSort: (columnKey: string) => void
-  }
-  menu: {
-    showColumnMenu: boolean
-    setShowColumnMenu: (value: boolean) => void
-    menuRef: React.RefObject<HTMLDivElement>
-    buttonRef: React.RefObject<HTMLButtonElement>
-    toggleColumn: (column: string) => void
-    itemsPerPage: number
-    setItemsPerPage: (value: number) => void
-  }
-  search: {
-    searchTerm: string
-  }
-}
-
-const ProductTable: React.FC<ProductTableProps> = ({ 
+export default function ProductTable({ 
   columns,
   pagination,
   sorting,
   menu,
   search
-}) => {
+}) {
   // Деструктуризация пропсов
   const { hiddenColumns, setHiddenColumns, columnWidths, setColumnWidths, activeTab } = columns
   const { pageData, fullData } = pagination
@@ -48,11 +17,11 @@ const ProductTable: React.FC<ProductTableProps> = ({
   const { showColumnMenu, setShowColumnMenu, menuRef, buttonRef, toggleColumn, itemsPerPage, setItemsPerPage } = menu
   const { searchTerm = '' } = search
   const [isResizing, setIsResizing] = useState(false)
-  const [resizeColumn, setResizeColumn] = useState<string | null>(null)
-  const [startX, setStartX] = useState<number>(0)
-  const [startWidth, setStartWidth] = useState<number>(0)
-  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set())
-  const dragStarted = useRef<boolean>(false)
+  const [resizeColumn, setResizeColumn] = useState(null)
+  const [startX, setStartX] = useState(0)
+  const [startWidth, setStartWidth] = useState(0)
+  const [brokenImages, setBrokenImages] = useState(new Set())
+  const dragStarted = useRef(false)
 
   if (!pageData.length) {
     return (
@@ -73,7 +42,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
   }, [allColumns, hiddenColumns])
 
   // Определение ширины колонки с учетом сохраненных значений - мемоизация для производительности
-  const getColumnWidth = useCallback((key: string): string => {
+  const getColumnWidth = useCallback((key) => {
     if (columnWidths[key]) {
       return `${columnWidths[key]}px`
     }
@@ -89,7 +58,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
   }, [columnWidths])
 
   // Начало изменения ширины - мемоизация для производительности
-  const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: string) => {
+  const handleMouseDown = useCallback((e, columnKey) => {
     e.preventDefault()
     dragStarted.current = false // Сброс флага перетаскивания
     setIsResizing(true)
@@ -100,7 +69,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
   }, [getColumnWidth])
 
   // Процесс изменения ширины - мемоизация для производительности
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMouseMove = useCallback((e) => {
     if (!isResizing || !resizeColumn) return
     
     dragStarted.current = true // Флаг что началось перетаскивание
@@ -140,19 +109,19 @@ const ProductTable: React.FC<ProductTableProps> = ({
   }, [isResizing, handleMouseMove, handleMouseUp])
 
   // Проверка типа поля - мемоизация для производительности
-  const isImageField = (key: string): boolean => {
+  const isImageField = (key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('image') || keyLower.includes('photo') || keyLower.includes('picture')
   }
 
-  const isLinkField = (key: string): boolean => {
+  const isLinkField = (key) => {
     const keyLower = key.toLowerCase()
     return keyLower.includes('link') || keyLower.includes('url')
   }
 
   // Обработка ошибки изображения
-  const handleImageError = (imageUrl: string) => {
-    setBrokenImages(prev => new Set(Array.from(prev).concat(imageUrl)))
+  const handleImageError = (imageUrl) => {
+    setBrokenImages(prev => new Set([...prev, imageUrl]))
   }
 
   // Стили ячейки удалены - используются inline-стили
@@ -209,9 +178,9 @@ const ProductTable: React.FC<ProductTableProps> = ({
         </div>
       )}
 
-      <div className="overflow-auto shadow rounded">
-        <table className="table-fixed w-full text-sm border-collapse">
-          <thead className="bg-gray-100">
+      <div className="overflow-x-auto">
+        <table className="border-collapse border border-gray-300 table-fixed w-full">
+          <thead>
             <tr className="h-12">
               {visibleColumns.map(key => {
                 const width = getColumnWidth(key)
@@ -219,7 +188,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                 return (
                   <th 
                     key={key} 
-                    className="px-3 py-2 text-left font-semibold truncate relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
+                    className="px-3 py-2 border bg-gray-100 text-xs text-left font-medium relative cursor-pointer hover:bg-gray-200 transition-colors h-12"
                     style={{ width }}
                     onClick={() => {
                       if (dragStarted.current) return // Игнорируем клик после перетаскивания
@@ -262,7 +231,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-2 truncate border-t text-xs text-center align-middle h-12"
+                        className="px-3 py-2 border text-xs text-center align-middle h-12"
                         style={{ width }}
                       >
                         {isImageBroken ? (
@@ -289,7 +258,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                     return (
                       <td 
                         key={j} 
-                        className="px-3 py-2 truncate border-t text-xs text-center align-middle h-12"
+                        className="px-3 py-2 border text-xs text-center align-middle h-12"
                         style={{ width }}
                       >
                         <button 
@@ -305,7 +274,7 @@ const ProductTable: React.FC<ProductTableProps> = ({
                   return (
                     <td 
                       key={j} 
-                      className="px-3 py-2 truncate border-t text-xs align-middle h-12 overflow-hidden whitespace-nowrap text-ellipsis"
+                      className="px-3 py-2 border text-xs align-middle h-12 overflow-hidden whitespace-nowrap text-ellipsis"
                       style={{ width }}
                       title={String(value)}
                     >
@@ -321,5 +290,3 @@ const ProductTable: React.FC<ProductTableProps> = ({
     </div>
   )
 }
-
-export default ProductTable

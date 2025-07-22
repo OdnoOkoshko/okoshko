@@ -1,16 +1,13 @@
-// useClickOutside.ts - хук для обработки кликов вне элементов
+// useClickOutside.js - хук для обработки кликов вне элементов
 
-import { useEffect, RefObject } from 'react'
+import { useEffect } from 'react'
 
-export function useClickOutside(
-  refs: RefObject<HTMLElement>[], 
-  callback: () => void
-): void {
+export function useClickOutside(refs, callback) {
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event) => {
       // Проверяем, что клик произошел вне всех переданных refs
       const isOutside = refs.every(ref => 
-        ref.current && !ref.current.contains(event.target as Node)
+        ref.current && !ref.current.contains(event.target)
       )
       
       if (isOutside) {

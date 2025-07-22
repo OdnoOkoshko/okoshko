@@ -1,9 +1,8 @@
-// usePagination.ts - хук для управления пагинацией данных
+// usePagination.js - хук для управления пагинацией данных
 
 import { useState, useMemo, useEffect } from 'react'
-import type { Product, UsePaginationReturn } from '@shared/types'
 
-export function usePagination(data: Product[], itemsPerPage: number = 100): UsePaginationReturn {
+export function usePagination(data, itemsPerPage = 100) {
   const [currentPage, setCurrentPage] = useState(1)
 
   // Сброс на первую страницу при изменении данных
@@ -32,7 +31,7 @@ export function usePagination(data: Product[], itemsPerPage: number = 100): UseP
     }
   }, [data, currentPage, itemsPerPage])
 
-  const goToPage = (page: number) => {
+  const goToPage = (page) => {
     if (page >= 1 && page <= paginationData.totalPages) {
       setCurrentPage(page)
     }

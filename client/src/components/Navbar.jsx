@@ -1,8 +1,4 @@
-// Navbar.tsx - компонент навигационного меню
-
-import React from 'react'
-
-const Navbar: React.FC = () => {
+export default function Navbar() {
   return (
     <nav className="bg-white shadow-md border-b">
       <div className="max-w-7xl mx-auto px-4">
@@ -22,5 +18,3 @@ const Navbar: React.FC = () => {
     </nav>
   )
 }
-
-export default Navbar

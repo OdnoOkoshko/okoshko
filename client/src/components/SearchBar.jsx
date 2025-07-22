@@ -1,12 +1,7 @@
-// SearchBar.tsx - компонент поля поиска с debounce
-import React, { useState, useEffect } from 'react'
+// SearchBar.jsx - компонент поля поиска с debounce
+import { useState, useEffect } from 'react'
 
-interface SearchBarProps {
-  searchTerm: string
-  setSearchTerm: (value: string) => void
-}
-
-const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, setSearchTerm }) => {
+export default function SearchBar({ searchTerm, setSearchTerm }) {
   const [inputValue, setInputValue] = useState(searchTerm)
 
   // Debounce эффект
@@ -33,10 +28,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ searchTerm, setSearchTerm }) => {
         placeholder="Поиск..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="border rounded px-2 py-1 text-sm w-[300px] pl-9 pr-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="border border-gray-300 pl-9 pr-3 py-2 rounded text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
     </div>
   )
 }
-
-export default SearchBar

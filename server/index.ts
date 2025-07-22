@@ -1,10 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
-import routes from "./routes.js";
-import { createServer } from "http";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
@@ -33,38 +29,43 @@ app.use((req, res, next) => {
         logLine = logLine.slice(0, 79) + "…";
       }
 
-      console.log(logLine);
+      log(logLine);
     }
   });
 
   next();
 });
 
-// Подключение маршрутов API
-app.use(routes);
+(async () => {
+  const server = await registerRoutes(app);
 
-// Обслуживание собранного TypeScript приложения
-app.use(express.static(join(__dirname, '../dist/public')));
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-// SPA fallback - все маршруты ведут к React приложению
-app.get('*', (req: Request, res: Response) => {
-  if (!req.url.startsWith('/api')) {
-    res.sendFile(join(__dirname, '../dist/public/index.html'));
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
   }
-});
 
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ message });
-});
-
-// Добавляем MIME типы для TypeScript модулей
-express.static.mime.define({'application/javascript': ['ts', 'tsx']});
-
-const server = createServer(app);
-const port = parseInt(process.env.PORT || '80', 10);
-
-server.listen(port, "0.0.0.0", () => {
-  console.log(`Server running on port ${port}`);
-});
+  // ALWAYS serve the app on the port specified in the environment variable PORT
+  // Other ports are firewalled. Default to 5000 if not specified.
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = parseInt(process.env.PORT || '5000', 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();

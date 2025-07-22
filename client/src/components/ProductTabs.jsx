@@ -1,31 +1,30 @@
-// ProductTabs.tsx - основной компонент с логикой управления данными
+// ProductTabs.jsx - основной компонент с логикой управления данными
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
-import type { SortConfig } from '@shared/types'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { FiSettings, FiRotateCcw } from 'react-icons/fi'
-import SearchBar from '@/components/SearchBar'
-import ProductTable from '@/components/ProductTable'
-import PaginationControls from '@/components/PaginationControls'
-import { usePersistentState } from '@shared/hooks/usePersistentState'
-import { usePersistentStateWithKey } from '@shared/hooks/usePersistentStateWithKey'
+import SearchBar from './SearchBar'
+import ProductTable from './ProductTable'
+import PaginationControls from './PaginationControls'
+import { usePersistentState } from '../../../shared/hooks/usePersistentState'
+import { usePersistentStateWithKey } from '../../../shared/hooks/usePersistentStateWithKey'
+import { removeFromStorage } from '../../../shared/storage.ts'
+import { useTabData } from '../hooks/useTabData.js'
+import { usePagination } from '../hooks/usePagination.js'
+import { useClickOutside } from '../hooks/useClickOutside.js'
+import { TAB_CONFIGS } from '../config/tabs.js'
+import { sortData } from '../utils/sortData.js'
 
-import { useTabData } from '@shared/hooks/useTabData'
-import { usePagination } from '@shared/hooks/usePagination'
-import { useClickOutside } from '@shared/hooks/useClickOutside'
-import { TAB_CONFIGS } from '@shared/config/tabs'
-import { sortData } from '@shared/utils/sortData'
-
-const ProductTabs: React.FC = () => {
+export default function ProductTabs() {
   const [activeTab, setActiveTab] = useState('moysklad')
   const { tabData, loading, error, fetchTabData } = useTabData()
   const [searchTerm, setSearchTerm] = useState('')
-  const [hiddenColumns, setHiddenColumns] = usePersistentState<string[]>('okoshko_hiddenColumns', [])
-  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {} as Record<string, number>, [activeTab])
-  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `okoshko_sortConfig_${activeTab}`, { column: null, direction: null } as SortConfig, [activeTab])
+  const [hiddenColumns, setHiddenColumns] = usePersistentState('okoshko_hiddenColumns', [])
+  const [columnWidths, setColumnWidths] = usePersistentStateWithKey(() => `okoshko_columnWidths_${activeTab}`, {}, [activeTab])
+  const [sortConfig, setSortConfig] = usePersistentStateWithKey(() => `okoshko_sortConfig_${activeTab}`, { column: null, direction: null }, [activeTab])
   const [itemsPerPage, setItemsPerPage] = usePersistentStateWithKey(() => `okoshko_${activeTab}_page_size`, 100, [activeTab])
   const [showColumnMenu, setShowColumnMenu] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef(null)
+  const buttonRef = useRef(null)
 
   // Загрузка данных при переключении вкладки
   useEffect(() => {
@@ -63,7 +62,7 @@ const ProductTabs: React.FC = () => {
   }, [activeTab, searchTerm])
   
   // Переключение видимости колонки
-  const toggleColumn = (column: string) => {
+  const toggleColumn = (column) => {
     setHiddenColumns(prev =>
       prev.includes(column)
         ? prev.filter(c => c !== column)
@@ -72,8 +71,8 @@ const ProductTabs: React.FC = () => {
   }
 
   // Функция сортировки
-  const handleSort = (columnKey: string) => {
-    let newDirection: 'asc' | 'desc' | null = 'asc'
+  const handleSort = (columnKey) => {
+    let newDirection = 'asc'
     
     if (sortConfig.column === columnKey) {
       if (sortConfig.direction === 'asc') {
@@ -83,7 +82,7 @@ const ProductTabs: React.FC = () => {
       }
     }
     
-    const newSortConfig: SortConfig = { 
+    const newSortConfig = { 
       column: newDirection ? columnKey : null, 
       direction: newDirection 
     }
@@ -94,10 +93,10 @@ const ProductTabs: React.FC = () => {
   // Функция сброса настроек таблицы
   const handleResetSettings = () => {
     // Удаляем настройки из localStorage
-    localStorage.removeItem(`okoshko_columnWidths_${activeTab}`)
-    localStorage.removeItem(`okoshko_sortConfig_${activeTab}`)
-    localStorage.removeItem(`okoshko_${activeTab}_page_size`)
-    localStorage.removeItem('okoshko_hiddenColumns')
+    removeFromStorage(`okoshko_columnWidths_${activeTab}`)
+    removeFromStorage(`okoshko_sortConfig_${activeTab}`)
+    removeFromStorage(`okoshko_${activeTab}_page_size`)
+    removeFromStorage('okoshko_hiddenColumns')
     
     // Сбрасываем состояния к дефолтным
     setColumnWidths({})
@@ -107,7 +106,7 @@ const ProductTabs: React.FC = () => {
   }
 
   // Функция переключения вкладки
-  const handleTabSwitch = (tabKey: string) => {
+  const handleTabSwitch = (tabKey) => {
     setActiveTab(tabKey)
     // Если вкладка еще не загружена, данные загрузятся в useEffect
   }
@@ -159,20 +158,25 @@ const ProductTabs: React.FC = () => {
         )}
 
         {!loading && !error && fullData.length > 0 && (
-          <div className="p-4">
-            {/* Блок поиска и шестерёнки согласно ТЗ */}
-            <div className="flex justify-between items-center px-4 py-2 mb-2">
-              <div className="flex items-center gap-4">
-                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-                <div className="text-sm text-gray-600">
-                  {searchTerm ? (
-                    <>Найдено {processedData.length} из {fullData.length} • Показано {pagination.startItem}–{pagination.endItem}</>
-                  ) : (
-                    <>Показано {pagination.startItem}–{pagination.endItem} из {pagination.totalCount}</>
-                  )}
-                </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            {/* Компактная панель управления */}
+            <div className="grid grid-cols-3 items-center mb-3">
+              {/* Левая часть - счетчик записей */}
+              <div className="text-sm text-gray-600">
+                {searchTerm ? (
+                  <>Найдено {processedData.length} из {fullData.length} • Показано {pagination.startItem}–{pagination.endItem}</>
+                ) : (
+                  <>Показано {pagination.startItem}–{pagination.endItem} из {pagination.totalCount}</>
+                )}
               </div>
-              <div className="flex items-center space-x-1">
+              
+              {/* Центральная часть - поиск */}
+              <div className="flex justify-center">
+                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+              </div>
+              
+              {/* Правая часть - кнопки управления */}
+              <div className="flex justify-end items-center space-x-1">
                 <button
                   onClick={handleResetSettings}
                   className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
@@ -244,5 +248,3 @@ const ProductTabs: React.FC = () => {
     </div>
   )
 }
-
-export default ProductTabs
